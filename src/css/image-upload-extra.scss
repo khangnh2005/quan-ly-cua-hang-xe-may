@@ -1,0 +1,247 @@
+
+// ===== IMAGE UPLOAD =====
+.image-upload-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.image-upload-area {
+  position: relative;
+  width: 100%;
+  min-height: 180px;
+  border: 2px dashed #cbd5e1;
+  border-radius: 12px;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  overflow: hidden;
+}
+
+.image-upload-area:hover {
+  border-color: #4361ee;
+  background: #eef2ff;
+}
+
+.image-upload-area.has-image {
+  border-style: solid;
+  border-color: #4361ee;
+  background: #fff;
+}
+
+.image-upload-area.dragging {
+  border-color: #4361ee;
+  background: #e0e7ff;
+  transform: scale(1.01);
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 24px 16px;
+  text-align: center;
+  color: #6c757d;
+}
+
+.upload-placeholder .upload-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #eef0ff;
+  color: #4361ee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  transition: all 0.25s;
+}
+
+.upload-placeholder .upload-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #2b2d42;
+  margin: 0;
+}
+
+.upload-placeholder .upload-hint {
+  font-size: 12px;
+  color: #6c757d;
+  margin: 0;
+}
+
+.upload-placeholder .upload-hint strong {
+  color: #4361ee;
+  font-weight: 600;
+}
+
+.image-upload-area:hover .upload-icon {
+  background: #4361ee;
+  color: #fff;
+  transform: translateY(-2px);
+}
+
+.image-preview {
+  position: relative;
+  width: 100%;
+  max-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #fff;
+}
+
+.image-preview img {
+  max-width: 100%;
+  max-height: 240px;
+  object-fit: contain;
+  display: block;
+  border-radius: 6px;
+}
+
+.image-preview .image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0) 35%, rgba(0,0,0,0) 65%, rgba(0,0,0,0.55) 100%);
+  opacity: 0;
+  transition: opacity 0.25s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+}
+
+.image-preview:hover .image-overlay {
+  opacity: 1;
+}
+
+.image-info-tag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: rgba(67,97,238,0.95);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  z-index: 2;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.image-info-tag i {
+  font-size: 10px;
+}
+
+.image-actions {
+  display: flex;
+  gap: 6px;
+  z-index: 2;
+}
+
+.image-actions button {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  border: none;
+  background: rgba(255,255,255,0.95);
+  color: #2b2d42;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  transition: all 0.2s;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.image-actions button:hover {
+  transform: translateY(-1px);
+}
+
+.image-actions .btn-replace {
+  background: #4361ee;
+  color: #fff;
+}
+
+.image-actions .btn-replace:hover {
+  background: #3a56d4;
+}
+
+.image-actions .btn-remove {
+  background: #e63946;
+  color: #fff;
+}
+
+.image-actions .btn-remove:hover {
+  background: #c92e3b;
+}
+
+.image-upload-area input[type="file"] {
+  display: none;
+}
+
+.image-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 12px;
+  background: #f1f5f9;
+  border-radius: 8px;
+  font-size: 12px;
+  color: #6c757d;
+}
+
+.image-meta .meta-name {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.image-meta .meta-name i {
+  color: #4361ee;
+}
+
+.image-meta .meta-name span {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 500;
+  color: #2b2d42;
+}
+
+.image-meta .meta-size {
+  flex-shrink: 0;
+  font-weight: 600;
+  color: #2b2d42;
+}
+
+.image-error {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  background: #fff5f5;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 12px;
+  font-weight: 500;
+  border-radius: 8px;
+}
+
+.image-error i {
+  font-size: 14px;
+}

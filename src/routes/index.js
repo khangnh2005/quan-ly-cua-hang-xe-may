@@ -14,6 +14,8 @@ import AdminProducts from "../pages/AdminProducts";
 import AdminOrders from "../pages/AdminOrders";
 import AdminCustomers from "../pages/AdminCustomers";
 import AdminSettings from "../pages/AdminSettings";
+import { patch } from "../untils/requests";
+import About from "../pages/About";
 
 export const routes = [
     // === CLIENT ROUTES ===
@@ -29,6 +31,9 @@ export const routes = [
                 children : [
                     { index: true, element: <Profile /> }
                 ]
+            },
+            {
+                path :"/about" , element : <About />
             }
         ]
     },
