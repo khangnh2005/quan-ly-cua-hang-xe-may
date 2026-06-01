@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { message } from 'antd';
-import { get, post } from '../../untils/requests';
+import { del, get, post } from '../../untils/requests';
 import '../../css/admin.scss';
 
 // === OPTIONS KHỚP VỚI DATABASE ===
@@ -161,6 +161,22 @@ function AdminProducts() {
     return opt ? opt.label : val;
   };
 
+  const handleDelete = async (id) => {
+  if (!window.confirm('Bạn có chắc chắn muốn xóa vĩnh viễn sản phẩm này?')) return;
+
+  try {
+    // Gọi API xóa cứng: vehicles/delete/:id
+    const res = await del(`vehicles/delete/${id}`);
+    
+    if (res) {
+      message.success('Đã xóa sản phẩm!');
+      fetchProducts(); // Tải lại danh sách sau khi xóa
+    }
+  } catch (err) {
+    message.error('Không thể xóa sản phẩm!');
+  }
+};
+
   return (
     <div className="admin-products">
       <div className="admin-toolbar">
@@ -235,7 +251,7 @@ function AdminProducts() {
                         <div className="action-btns">
                           <button className="btn-icon edit" title="Sửa"><i className="fa-solid fa-pen"></i></button>
                           <button className="btn-icon view" title="Xem"><i className="fa-solid fa-eye"></i></button>
-                          <button className="btn-icon delete" title="Xóa"><i className="fa-solid fa-trash"></i></button>
+                          <button className="btn-icon delete" title="Xóa" onClick={() => handleDelete(product._id)}><i className="fa-solid fa-trash"></i></button>
                         </div>
                       </td>
                     </tr>

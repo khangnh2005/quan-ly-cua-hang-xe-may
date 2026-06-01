@@ -40,10 +40,7 @@ function Header() {
             <a href="#" className="nav-icon-btn" title="Theo dõi đơn hàng">
               <i className="fa-solid fa-truck-fast"></i>
             </a>
-            <a href="#" className="nav-icon-btn cart-btn" title="Giỏ hàng">
-              <i className="fa-solid fa-cart-shopping"></i>
-              <span className="cart-badge">0</span>
-            </a>
+            
             <Link to="/profile" className="nav-icon-btn" title={fullName || 'User'}>
               <i className="fa-solid fa-circle-user"></i>
               <span style={{ marginLeft: '4px', fontSize: '12px', color: '#fff' }}>{fullName || 'User'}</span>
