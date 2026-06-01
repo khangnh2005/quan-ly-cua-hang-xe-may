@@ -11,10 +11,10 @@ import PrivateRoute from "../PrivateRoute";
 import AdminLayout from "../layout/AdminLayout";
 import AdminDashboard from "../pages/AdminDashboard";
 import AdminProducts from "../pages/AdminProducts";
+import AdminVehicleModels from "../pages/AdminVehicleModels";
 import AdminOrders from "../pages/AdminOrders";
 import AdminCustomers from "../pages/AdminCustomers";
 import AdminSettings from "../pages/AdminSettings";
-import { patch } from "../untils/requests";
 import About from "../pages/About";
 
 export const routes = [
@@ -55,6 +55,7 @@ export const routes = [
             { index: true, element: <Navigate to="dashboard" replace /> },
             { path: "dashboard", element: <AdminDashboard /> },
             { path: "vehicles", element: <AdminProducts /> },
+            { path: "vehicle-models", element: <AdminVehicleModels /> },
             { path: "orders", element: <AdminOrders /> },
             { path: "customers", element: <AdminCustomers /> },
             { path: "settings", element: <AdminSettings /> },
