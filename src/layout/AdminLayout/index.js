@@ -3,7 +3,7 @@ import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { message } from 'antd';
 import { checkAdminLogin } from '../../actions/checkAdminLogin';
-import { deleteCookie, getCookie } from '../../helpers/cookie';
+import { deleteCookie, deleteAllCookies, getCookie } from '../../helpers/cookie';
 import AdminLogin from '../../pages/AdminLogin';
 import '../../css/admin.scss';
 
@@ -35,12 +35,11 @@ function AdminLayout() {
   }, [isAdmin, adminToken, location.pathname, navigate]);
 
   const handleLogout = () => {
-    deleteCookie('adminToken');
-    deleteCookie('adminName');
-    deleteCookie('adminEmail');
+    deleteAllCookies();
     dispatch(checkAdminLogin(false));
     message.success('Đã đăng xuất!');
-    navigate('/admin');
+    // Force navigate to admin login page
+    window.location.href = '/admin';
   };
 
   // Nếu chưa đăng nhập → hiển thị form login
@@ -58,7 +57,7 @@ function AdminLayout() {
         <div className="sidebar-header">
           <Link to="/admin/dashboard" className="sidebar-logo">
             <img src="https://i.ibb.co/N2M6KQF1/z7790788363527-56ca27f711c0b500b4470863fd7c81c2-1.jpg" alt="Logo" />
-            {!collapsed && <span className="sidebar-brand">LONG <span>MOTO</span></span>}
+            {!collapsed && <span className="sidebar-brand">LONG <span>MOTO</span> ADMIN</span>}
           </Link>
           <button className="collapse-btn" onClick={() => setCollapsed(!collapsed)}>
             <i className={`fa-solid ${collapsed ? 'fa-chevron-right' : 'fa-chevron-left'}`}></i>

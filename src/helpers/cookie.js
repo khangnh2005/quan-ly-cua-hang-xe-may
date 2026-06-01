@@ -18,10 +18,10 @@ export function setCookie(cname, cvalue, exdays) {
         var d = new Date();
         d.setTime(d.getTime() + exdays * 24 * 60 * 60 * 1000);
         var expires = "expires=" + d.toUTCString();
-        document.cookie = cname + "=" + cvalue + "; " + expires;
+        document.cookie = cname + "=" + cvalue + "; " + expires + "; path=/";
     } else {
         // Session cookie - no expires, will expire when browser closes
-        document.cookie = cname + "=" + cvalue;
+        document.cookie = cname + "=" + cvalue + "; path=/";
     }
 }
 
@@ -33,9 +33,11 @@ export function deleteAllCookies() {
     const cookies = document.cookie.split(";");
 
     for (let i = 0; i < cookies.length; i++) {
-        const cookie = cookies[i];
+        const cookie = cookies[i].trim();
         const eqPos = cookie.indexOf("=");
         const name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
         document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/;";
+        // Also try without path (fallback for cookies set without path)
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;";
     }
 }

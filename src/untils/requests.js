@@ -3,8 +3,10 @@ import { getCookie } from '../helpers/cookie';
 const API_DOMAIN = "/api/";
 
 function getAuthHeaders() {
-    const token = getCookie('token');
-    if (token) {
+    // Check cookies first, then localStorage as backup
+    const token = getCookie('token') || getCookie('adminToken') || localStorage.getItem('adminToken') || localStorage.getItem('token');
+    console.log('API Auth Token:', token ? token.substring(0, 20) + '...' : 'NONE');
+    if (token && token !== 'undefined' && token !== 'null' && token !== 'DEMO_ADMIN_001') {
         return { 'Authorization': `Bearer ${token}` };
     }
     return {};

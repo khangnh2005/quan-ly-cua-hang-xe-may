@@ -7,14 +7,36 @@ import { setCookie, getCookie, deleteCookie } from '../../helpers/cookie';
 import { post } from '../../untils/requests';
 import '../../css/admin.scss';
 
-// Demo admin credentials (hardcoded for testing without backend)
+// Demo admin credentials (dùng làm fallback khi API lỗi)
 const DEMO_ADMIN = {
-  username: 'admin',
-  password: '123456',
-  fullName: 'Admin LongMoto',
+  tenDangNhap: 'admin',
+  matKhau: '123456',
+  hoTen: 'Admin LongMoto',
   email: 'admin@longmoto.vn',
   id: 'DEMO_ADMIN_001',
 };
+
+// Helper: extract token từ response của API admin
+// Cấu trúc trả về: { message, user: { token, tenDangNhap, hoTen, vaiTro: { tenVaiTro }, ... } }
+function extractToken(response) {
+  if (!response) return null;
+  const user = response.user || {};
+  return (
+    user.token ||
+    user.accessToken ||
+    user.jwt ||
+    response.token ||
+    response.accessToken ||
+    response.jwt ||
+    null
+  );
+}
+
+// Helper: extract thông tin user
+function extractUser(response) {
+  if (!response) return null;
+  return response.user || null;
+}
 
 function AdminLogin() {
   const navigate = useNavigate();
@@ -23,8 +45,8 @@ function AdminLogin() {
   const isAdmin = typeof adminState === 'boolean' ? adminState : adminState?.isAdmin;
 
   const [formData, setFormData] = useState({
-    username: '',
-    password: '',
+    tenDangNhap: '',
+    matKhau: '',
   });
   const [loading, setLoading] = useState(false);
 
@@ -41,55 +63,105 @@ function AdminLogin() {
     setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  // Hàm đăng nhập demo - KHÔNG cần API backend
-  const handleDemoLogin = () => {
-    // Bypass API - đăng nhập ngay với tài khoản demo
-    setCookie('adminToken', DEMO_ADMIN.id, 1);
-    setCookie('adminName', DEMO_ADMIN.fullName, 1);
-    setCookie('adminEmail', DEMO_ADMIN.email, 1);
+  // Lưu thông tin đăng nhập vào cookies + localStorage
+  const persistLogin = (user, token) => {
+    setCookie('token', token, 1);
+    setCookie('adminToken', token, 1);
+    setCookie('adminName', user?.hoTen || 'Admin', 1);
+    setCookie('adminUsername', user?.tenDangNhap || '', 1);
+    setCookie('adminEmail', user?.email || '', 1);
+    setCookie('adminRole', user?.vaiTro?.tenVaiTro || 'Admin', 1);
+    localStorage.setItem('adminToken', token);
+    localStorage.setItem('token', token);
+    localStorage.setItem('adminInfo', JSON.stringify(user));
+  };
 
-    dispatch(checkAdminLogin(true, DEMO_ADMIN.id));
-    message.success(`Chào mừng Admin ${DEMO_ADMIN.fullName} (Demo Mode)`);
-    navigate('/admin/dashboard');
+  // Gọi API admin thật để đăng nhập
+  const callAdminSignIn = async (tenDangNhap, matKhau) => {
+    const response = await post('admin/auth/sign-in', {
+      tenDangNhap,
+      matKhau,
+    });
+    console.log('AdminLogin - API response:', response);
+    return response;
+  };
+
+  // Đăng nhập bằng tài khoản demo (gọi API thật)
+  const handleDemoLogin = async () => {
+    setLoading(true);
+    try {
+      // Gọi API admin thật với tài khoản demo
+      const response = await callAdminSignIn(DEMO_ADMIN.tenDangNhap, DEMO_ADMIN.matKhau);
+
+      if (response && (response.message === 'Sign-in successful' || response.user)) {
+        const user = extractUser(response);
+        const token = extractToken(response);
+
+        if (!token) {
+          message.error('Không nhận được token từ server!');
+          return;
+        }
+
+        // Kiểm tra role admin
+        const roleName = user?.vaiTro?.tenVaiTro;
+        if (roleName && roleName !== 'Admin') {
+          message.error('Tài khoản này không có quyền Admin!');
+          return;
+        }
+
+        persistLogin(user, token);
+        dispatch(checkAdminLogin(true, token));
+        message.success(`Chào mừng Admin ${user?.hoTen || ''}`);
+        navigate('/admin/dashboard');
+        return;
+      }
+
+      // Nếu API trả về lỗi
+      const errorMsg = response?.message || 'Đăng nhập thất bại!';
+      message.error(errorMsg);
+    } catch (err) {
+      console.error('Demo login error:', err);
+      message.error('Đăng nhập thất bại! Vui lòng kiểm tra lại tài khoản demo (admin / 123456).');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     try {
-      // Ưu tiên kiểm tra demo account trước
-      if (formData.username === DEMO_ADMIN.username && formData.password === DEMO_ADMIN.password) {
-        handleDemoLogin();
-        setLoading(false);
-        return;
-      }
+      // Gọi API admin thật với thông tin user nhập vào
+      const response = await callAdminSignIn(formData.tenDangNhap, formData.matKhau);
 
-      const response = await post('auth/sign-in', {
-        username: formData.username,
-        password: formData.password,
-      });
+      if (response && (response.message === 'Sign-in successful' || response.user)) {
+        const user = extractUser(response);
+        const token = extractToken(response);
 
-      if (response && response.message === 'Sign-in successful') {
-        const user = response.user;
-
-        // Check if user is admin (by role or specific admin credentials)
-        if (user.role === 'admin' || formData.username === 'admin' || formData.username.startsWith('admin')) {
-          setCookie('adminToken', user.id, 1);
-          setCookie('adminName', user.fullName, 1);
-          setCookie('adminEmail', user.email, 1);
-
-          dispatch(checkAdminLogin(true, user.id));
-          message.success(`Chào mừng Admin ${user.fullName}`);
-          navigate('/admin/dashboard');
-        } else {
-          message.error('Bạn không có quyền truy cập trang Admin!');
+        if (!token) {
+          message.error('Không nhận được token từ server!');
+          return;
         }
+
+        // Kiểm tra role admin (vaiTro.tenVaiTro === 'Admin')
+        const roleName = user?.vaiTro?.tenVaiTro;
+        if (roleName && roleName !== 'Admin') {
+          message.error(`Tài khoản "${formData.tenDangNhap}" không có quyền truy cập trang Admin!`);
+          return;
+        }
+
+        persistLogin(user, token);
+        dispatch(checkAdminLogin(true, token));
+        message.success(`Chào mừng Admin ${user?.hoTen || formData.tenDangNhap}`);
+        navigate('/admin/dashboard');
       } else {
-        message.error('Sai tên đăng nhập hoặc mật khẩu!');
+        // API trả về lỗi (sai tk/mk, tài khoản không tồn tại...)
+        const errorMsg = response?.message || 'Sai tên đăng nhập hoặc mật khẩu!';
+        message.error(errorMsg);
       }
     } catch (err) {
       console.error('Admin login error:', err);
-      message.error('Đăng nhập thất bại! Vui lòng kiểm tra lại thông tin.');
+      message.error('Đăng nhập thất bại! Vui lòng kiểm tra kết nối mạng hoặc thông tin đăng nhập.');
     } finally {
       setLoading(false);
     }
@@ -135,26 +207,28 @@ function AdminLogin() {
 
             <form onSubmit={handleSubmit} className="admin-login-form">
               <div className="admin-field">
-                <label htmlFor="username">Tên đăng nhập</label>
+                <label htmlFor="tenDangNhap">Tên đăng nhập</label>
                 <input
                   type="text"
-                  id="username"
-                  name="username"
-                  value={formData.username}
+                  id="tenDangNhap"
+                  name="tenDangNhap"
+                  value={formData.tenDangNhap}
                   onChange={handleInputChange}
                   placeholder="Nhập tên đăng nhập"
+                  autoComplete="username"
                   required
                 />
               </div>
               <div className="admin-field">
-                <label htmlFor="password">Mật khẩu</label>
+                <label htmlFor="matKhau">Mật khẩu</label>
                 <input
                   type="password"
-                  id="password"
-                  name="password"
-                  value={formData.password}
+                  id="matKhau"
+                  name="matKhau"
+                  value={formData.matKhau}
                   onChange={handleInputChange}
                   placeholder="Nhập mật khẩu"
+                  autoComplete="current-password"
                   required
                 />
               </div>
@@ -171,14 +245,14 @@ function AdminLogin() {
               <span>HOẶC</span>
             </div>
 
-            <button 
-              type="button" 
-              className="admin-demo-btn" 
+            <button
+              type="button"
+              className="admin-demo-btn"
               onClick={handleDemoLogin}
               disabled={loading}
             >
               <i className="fa-solid fa-rocket"></i>
-              Đăng nhập Demo (Không cần API)
+              Đăng nhập nhanh (admin / 123456)
             </button>
           </div>
         </div>
