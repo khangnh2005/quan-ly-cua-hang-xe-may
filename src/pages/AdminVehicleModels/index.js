@@ -9,6 +9,8 @@ const emptyVehicleModel = {
   loaiXeId: '',
   giaNiemYet: '',
   dungTichXiLanh: '',
+  namSanXuat: '',
+  mucTieuThuNhienLieu: '',
   moTa: '',
   deleted: false,
 };
@@ -75,6 +77,8 @@ function AdminVehicleModels() {
         loaiXeId: record.loaiXeId?._id || record.loaiXeId || '',
         giaNiemYet: record.giaNiemYet || '',
         dungTichXiLanh: record.dungTichXiLanh || '',
+        namSanXuat: record.namSanXuat || '',
+        mucTieuThuNhienLieu: record.mucTieuThuNhienLieu || '',
         moTa: record.moTa || '',
         deleted: false,
       });
@@ -120,6 +124,8 @@ function AdminVehicleModels() {
         loaiXeId: form.loaiXeId,
         giaNiemYet: Number(form.giaNiemYet),
         dungTichXiLanh: Number(form.dungTichXiLanh),
+        namSanXuat: Number(form.namSanXuat),
+        mucTieuThuNhienLieu: Number(form.mucTieuThuNhienLieu),
         moTa: form.moTa?.trim() || '',
       };
 
@@ -352,6 +358,16 @@ function AdminVehicleModels() {
                       />
                     </div>
 
+                    <div className="modal-field">
+                      <label>Năm sản xuất <span className="required">*</span></label>
+                      <input type="number" name="namSanXuat" value={form.namSanXuat} onChange={handleInput} required />
+                    </div>
+
+                    <div className="modal-field">
+                      <label>Mức tiêu thụ nhiên liệu <span className="required">*</span></label>
+                      <input type="number" step="0.01" name="mucTieuThuNhienLieu" value={form.mucTieuThuNhienLieu} onChange={handleInput} required />
+                    </div>
+                    
                     <div className="modal-field full-width">
                       <label>Mô tả</label>
                       <textarea
@@ -362,6 +378,8 @@ function AdminVehicleModels() {
                         rows="3"
                       />
                     </div>
+
+                   
                   </div>
                 </div>
               </div>
