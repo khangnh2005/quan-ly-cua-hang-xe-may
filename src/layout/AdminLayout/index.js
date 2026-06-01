@@ -9,7 +9,13 @@ import '../../css/admin.scss';
 
 const menuItems = [
   { path: '/admin/dashboard', icon: 'fa-chart-pie', label: 'Dashboard' },
-  { path: '/admin/products', icon: 'fa-motorcycle', label: 'Sản phẩm' },
+  { path: '/admin/vehicles', icon: 'fa-motorcycle', label: 'Sản phẩm' ,
+    children: [
+      { path: '/admin/vehicles', label: 'Danh sách xe' },
+      { path: '/admin/vehicle-models', label: 'Dòng xe' },
+      { path: '/admin/vehicle-categories', label: 'Loại xe' },
+    ]
+   },
   { path: '/admin/orders', icon: 'fa-clipboard-list', label: 'Đơn hàng' },
   { path: '/admin/customers', icon: 'fa-users', label: 'Khách hàng' },
   { path: '/admin/settings', icon: 'fa-gear', label: 'Cài đặt' },
@@ -18,6 +24,7 @@ const menuItems = [
 function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState(null);
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -65,15 +72,30 @@ function AdminLayout() {
         </div>
         <nav className="sidebar-nav">
           {menuItems.map(item => (
-            <Link
-              key={item.path}
-              to={item.path}
-              className={`nav-item ${location.pathname === item.path ? 'active' : ''}`}
-              onClick={() => setMenuOpen(false)}
-            >
-              <i className={`fa-solid ${item.icon}`}></i>
-              {!collapsed && <span>{item.label}</span>}
-            </Link>
+            <div key={item.path}>
+              <Link
+                to={item.children ? '#' : item.path}
+                className={`nav-item ${location.pathname.startsWith(item.path) ? 'active' : ''}`}
+                onClick={() => item.children ? setOpenMenu(openMenu === item.path ? null : item.path) : setMenuOpen(false)}
+              >
+                <i className={`fa-solid ${item.icon}`}></i>
+                {!collapsed && <span>{item.label}</span>}
+                {item.children && !collapsed && (
+                  <i className={`fa-solid ${openMenu === item.path ? 'fa-chevron-down' : 'fa-chevron-right'} ml-auto`}></i>
+                )}
+              </Link>
+              
+              {/* Render sub-menu */}
+              {item.children && openMenu === item.path && !collapsed && (
+                <div className="sub-menu">
+                  {item.children.map(child => (
+                    <Link key={child.path} to={child.path} className={`sub-nav-item ${location.pathname === child.path ? 'active' : ''}`}>
+                      {child.label}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </nav>
         <div className="sidebar-footer">

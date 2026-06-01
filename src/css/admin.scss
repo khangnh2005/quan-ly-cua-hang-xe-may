@@ -1589,3 +1589,52 @@ $radius-sm: 8px;
     padding: 16px !important;
   }
 }
+
+/* Sidebar chính */
+.admin-sidebar {
+  background: #1a1c24; // Màu nền tối sang trọng
+  color: #fff;
+  width: 260px;
+  transition: all 0.3s ease;
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    padding: 15px 20px;
+    color: #a0a0a0;
+    text-decoration: none;
+    transition: 0.3s;
+    
+    i { margin-right: 12px; font-size: 18px; }
+
+    &:hover, &.active {
+      background: #252836;
+      color: #6366f1; // Màu nhấn xanh tím
+      border-left: 4px solid #6366f1;
+    }
+  }
+
+  /* Sub-menu (Dòng xe, Loại xe...) */
+  .sub-menu {
+    background: #15171d; // Màu tối hơn một chút cho submenu
+    padding-left: 20px;
+
+    .sub-nav-item {
+      display: block;
+      padding: 12px 20px;
+      color: #888;
+      font-size: 13.5px;
+      text-decoration: none;
+      transition: 0.2s;
+
+      &:hover { color: #fff; padding-left: 25px; }
+      &.active { color: #6366f1; font-weight: 500; }
+    }
+  }
+}
+
+/* Hiệu ứng xoay icon chevron */
+.fa-chevron-down, .fa-chevron-right {
+  margin-left: auto;
+  font-size: 12px;
+}

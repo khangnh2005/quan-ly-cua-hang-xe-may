@@ -54,7 +54,7 @@ export const routes = [
         children : [
             { index: true, element: <Navigate to="dashboard" replace /> },
             { path: "dashboard", element: <AdminDashboard /> },
-            { path: "products", element: <AdminProducts /> },
+            { path: "vehicles", element: <AdminProducts /> },
             { path: "orders", element: <AdminOrders /> },
             { path: "customers", element: <AdminCustomers /> },
             { path: "settings", element: <AdminSettings /> },

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { message } from 'antd';
+import { message , Modal } from 'antd';
 import { del, get, post } from '../../untils/requests';
 import '../../css/admin.scss';
 
@@ -161,21 +161,29 @@ function AdminProducts() {
     return opt ? opt.label : val;
   };
 
-  const handleDelete = async (id) => {
-  if (!window.confirm('Bạn có chắc chắn muốn xóa vĩnh viễn sản phẩm này?')) return;
-
-  try {
-    // Gọi API xóa cứng: vehicles/delete/:id
-    const res = await del(`vehicles/delete/${id}`);
-    
-    if (res) {
-      message.success('Đã xóa sản phẩm!');
-      fetchProducts(); // Tải lại danh sách sau khi xóa
-    }
-  } catch (err) {
-    message.error('Không thể xóa sản phẩm!');
-  }
-};
+  const handleDelete = (id) => {
+    Modal.confirm({
+      title: 'Bạn có chắc chắn muốn xóa sản phẩm này?',
+      content: 'Hành động này sẽ xóa vĩnh viễn sản phẩm khỏi hệ thống.',
+      okText: 'Xóa',
+      okType: 'danger',
+      cancelText: 'Hủy',
+      onOk: async () => {
+        try {
+          const res = await del(`vehicles/delete/${id}`);
+          if (res) {
+            message.success('Đã xóa sản phẩm thành công!');
+            fetchProducts();
+          }
+        } catch (err) {
+          message.error('Không thể xóa sản phẩm!');
+        }
+      },
+      onCancel() {
+        console.log('Đã hủy xóa');
+      },
+    });
+  };
 
   return (
     <div className="admin-products">
