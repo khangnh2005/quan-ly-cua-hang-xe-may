@@ -1,5 +1,9 @@
-import { getCookie } from '../../helpers/cookie';
+import { getCookie , setCookie } from '../../helpers/cookie';
 import '../../css/style.scss';
+import { useState } from 'react';
+import { message } from 'antd';
+import { post } from '../../untils/requests';
+import { Button, Space, Modal } from 'antd';
 
 function Profile() {
   const user = {
@@ -9,6 +13,53 @@ function Profile() {
     address: getCookie('address') || 'Chưa cập nhật',
     cccd: getCookie('cccd') || 'Chưa cập nhật',
     userId: getCookie('userId') || '',
+  };
+  const [showModal, setShowModal] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+  const [editForm, setEditForm] = useState({
+    fullName: getCookie('fullName') || '',
+    email: getCookie('email') || '',
+    phoneNumber: getCookie('phoneNumber') || '',
+    cccd: getCookie('cccd') || '',
+    address: getCookie('address') || '',
+  });
+
+  const handleOpenEdit = () => {
+    setEditForm({
+     fullName: getCookie('fullName') || '',
+      email: getCookie('email') || '',
+      phoneNumber: getCookie('phoneNumber') || '',
+      cccd: getCookie('cccd') || '',
+      address: getCookie('address') || ''
+    });
+    setShowModal(true);
+  };
+
+  // Cập nhật state khi gõ
+  const handleInput = (e) => {
+    setEditForm({ ...editForm, [e.target.name]: e.target.value });
+  };
+
+  // Gửi API update
+  const handleUpdateProfile = async (e) => {
+    e.preventDefault();
+    try {
+      // Gọi API update (Hãy thay đường dẫn API khớp với Backend của bạn)
+      const res = await post('auth/update-profile', editForm);
+      
+      if (res) {
+        message.success('Cập nhật thành công!');
+        // Cập nhật lại Cookies sau khi sửa thành công
+        setCookie('fullName', editForm.fullName);
+        setCookie('phoneNumber', editForm.phoneNumber);
+        setCookie('address', editForm.address);
+        
+        setShowModal(false);
+        window.location.reload(); // Reload để render lại thông tin mới
+      }
+    } catch (err) {
+      message.error('Cập nhật thất bại!');
+    }
   };
 
   return (
@@ -71,11 +122,55 @@ function Profile() {
             <p>{user.address}</p>
           </div>
 
-          <button className="profile-btn-edit">
+          <button className="profile-btn-edit" onClick={handleOpenEdit}>
             <i className="fa-solid fa-pen"></i> Chỉnh sửa hồ sơ
           </button>
         </div>
       </div>
+      {showModal && (
+  <div className="modal-overlay">
+    <div className="modal-container">
+      <h3>Chỉnh sửa hồ sơ</h3>
+      <form onSubmit={handleUpdateProfile}>
+        <div className="modal-field">
+          <label>Họ và tên</label>
+          <input name="fullName" value={editForm.fullName} onChange={handleInput} />
+        </div>
+        <div className="modal-field">
+          <label>Số điện thoại</label>
+          <input name="phoneNumber" value={editForm.phoneNumber} onChange={handleInput} />
+        </div>
+        <div className="modal-field">
+          <label>Địa chỉ</label>
+          <input name="address" value={editForm.address} onChange={handleInput} />
+        </div>
+        <div className="modal-field">
+          <label>Email</label>
+          <input name="email" value={editForm.email} onChange={handleInput} />
+        </div>
+        <div className="modal-field">
+          <label>CCCD</label>
+          <input name="cccd" value={editForm.cccd} onChange={handleInput} />
+        </div>
+
+        <div className="modal-footer" style={{ textAlign: 'right', marginTop: '20px' }}>
+          <Space>
+            <Button onClick={() => setShowModal(false)}>
+              Hủy bỏ
+            </Button>
+            <Button 
+              type="primary" 
+              htmlType="submit" 
+              loading={submitting} // Sử dụng state submitting có sẵn của bạn
+            >
+              Lưu thay đổi
+            </Button>
+          </Space>
+        </div>
+      </form>
+    </div>
+  </div>
+)}
     </div>
   );
 }

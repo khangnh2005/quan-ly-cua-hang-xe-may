@@ -10,6 +10,7 @@ import '../../css/style.scss';
 function Register() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     password: '',
@@ -38,9 +39,9 @@ function Register() {
         password: formData.password,
         fullName: formData.fullName,
         email: formData.email,
-        phoneNumber: formData.phoneNumber,
-        cccd: formData.cccd,
-        address: formData.address,
+        phoneNumber: formData.phoneNumber || " ", 
+        cccd: formData.cccd || " ",
+        address: formData.address || " "
       });
 
       if (response && response.message === 'Sign-up successful') {
@@ -153,56 +154,31 @@ function Register() {
                 />
               </div>
 
-              <div className="login-field">
-                <label htmlFor="phoneNumber">Số điện thoại *</label>
-                <input
-                  type="tel"
-                  id="phoneNumber"
-                  name="phoneNumber"
-                  value={formData.phoneNumber}
-                  onChange={handleInputChange}
-                  placeholder="Nhập số điện thoại"
-                  required
-                />
-              </div>
 
-              <div className="login-field">
-                <label htmlFor="cccd">CCCD *</label>
-                <input
-                  type="text"
-                  id="cccd"
-                  name="cccd"
-                  value={formData.cccd}
-                  onChange={handleInputChange}
-                  placeholder="Nhập số CCCD"
-                  required
-                />
-              </div>
-
-              <div className="login-field">
-                <label htmlFor="address">Địa chỉ *</label>
-                <input
-                  type="text"
-                  id="address"
-                  name="address"
-                  value={formData.address}
-                  onChange={handleInputChange}
-                  placeholder="Nhập địa chỉ"
-                  required
-                />
-              </div>
-
-              <div className="login-field">
+              <div className="login-field" style={{ position: 'relative' }}>
                 <label htmlFor="password">Mật khẩu *</label>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'} // Thay đổi type dựa vào state
                   id="password"
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  placeholder="Nhập mật khẩu của bạn"
+                  placeholder="Nhập mật khẩu"
                   required
+                  style={{ paddingRight: '40px' }} // Tạo khoảng trống bên phải cho icon
                 />
+                {/* Icon con mắt */}
+                <i 
+                  className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} 
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '15px',
+                    top: '40px',
+                    cursor: 'pointer',
+                    color: '#888'
+                  }}
+                ></i>
               </div>
 
               <button type="submit" className="login-btn-primary" disabled={loading}>

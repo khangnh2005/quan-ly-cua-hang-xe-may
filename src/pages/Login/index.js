@@ -8,6 +8,7 @@ import { post } from '../../untils/requests';
 import '../../css/style.scss';
 
 function Login() {
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [formData, setFormData] = useState({
@@ -134,17 +135,29 @@ function Login() {
                 />
               </div>
 
-              <div className="login-field">
+              <div className="login-field" style={{ position: 'relative' }}>
                 <label htmlFor="password">Mật khẩu</label>
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   id="password"
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
                   placeholder="Nhập mật khẩu của bạn"
                   required
+                  style={{ paddingRight: '40px' }} // Chừa chỗ cho icon
                 />
+                <i 
+                  className={`fa-solid ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} 
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '15px',
+                    top: '38px', // Bạn có thể tinh chỉnh số này tùy theo chiều cao label của bạn
+                    cursor: 'pointer',
+                    color: '#888'
+                  }}
+                ></i>
               </div>
 
               <div className="login-options">
@@ -164,16 +177,7 @@ function Login() {
                 {loading ? 'Đang đăng nhập...' : 'Đăng nhập'}
               </button>
 
-              <div className="login-divider">
-                <span>Hoặc đăng nhập với</span>
-              </div>
-
-              <div className="login-social">
-                <button type="button" className="login-btn-social login-btn-google">
-                  <i className="fa-brands fa-google"></i>
-                  Google
-                </button>
-              </div>
+             
             </form>
 
             <div className="login-card-footer">
