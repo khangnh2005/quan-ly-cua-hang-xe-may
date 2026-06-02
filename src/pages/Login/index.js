@@ -54,7 +54,10 @@ function Login() {
         setCookie('phoneNumber', user.phoneNumber || '', days);
         setCookie('address', user.address || '', days);
         setCookie('cccd', user.cccd || '', days);
-        setCookie('avatar', user?.avatar || '');
+        // Chỉ set avatar cookie khi server có trả về, nếu không giữ lại giá trị cũ
+        if (user?.avatar) {
+          setCookie('avatar', user.avatar, days);
+        }
         // Dispatch login to Redux
         dispatch(checkLogin(true));
         
