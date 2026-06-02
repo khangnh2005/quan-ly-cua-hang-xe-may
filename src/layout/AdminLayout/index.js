@@ -41,6 +41,16 @@ function AdminLayout() {
     }
   }, [isAdmin, adminToken, location.pathname, navigate]);
 
+  // Tự động mở sub-menu khi đang ở trang con
+  useEffect(() => {
+    const activeParent = menuItems.find(item =>
+      item.children && item.children.some(child => child.path === location.pathname)
+    );
+    if (activeParent) {
+      setOpenMenu(activeParent.path);
+    }
+  }, [location.pathname]);
+
   const handleLogout = () => {
     deleteAllCookies();
     dispatch(checkAdminLogin(false));

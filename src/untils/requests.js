@@ -52,16 +52,30 @@ export const del = async(path)=>{
 }
 
 export const patch = async(path, data)=>{
-    const response = await fetch(API_DOMAIN + path, {
-        method: "PATCH",
-        headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            ...getAuthHeaders()
-        },
-        credentials: 'include',
-        body: JSON.stringify(data)
-    });
-    const result = await response.json();
-    return result;
+  const response = await fetch(API_DOMAIN + path, {
+      method: "PATCH",
+      headers: {
+          Accept: "application/json",
+          "Content-Type": "application/json",
+          ...getAuthHeaders()
+      },
+      credentials: 'include',
+      body: JSON.stringify(data)
+  });
+  const result = await response.json();
+  return result;
+}
+
+export const uploadFile = async(path, formData)=>{
+  const response = await fetch(API_DOMAIN + path, {
+      method: "POST",
+      headers: {
+          ...getAuthHeaders()
+          // Note: Content-Type will be set automatically by browser for FormData
+      },
+      credentials: 'include',
+      body: formData
+  });
+  const result = await response.json();
+  return result;
 }

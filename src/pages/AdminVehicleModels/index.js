@@ -4,15 +4,15 @@ import { del, get, post, patch } from '../../untils/requests';
 import '../../css/admin.scss';
 
 // Initial state for form
+// Lưu ý: API dùng tên trường "loaiXe" (KHÔNG phải loaiXeId)
 const emptyVehicleModel = {
   tenDongXe: '',
-  loaiXeId: '',
+  loaiXe: '',
   giaNiemYet: '',
   dungTichXiLanh: '',
   namSanXuat: '',
   mucTieuThuNhienLieu: '',
   moTa: '',
-  deleted: false,
 };
 
 function AdminVehicleModels() {
@@ -30,28 +30,28 @@ function AdminVehicleModels() {
     fetchVehicleCategories();
   }, []);
 
-  // Fetch vehicle categories for dropdown
+  // Fetch vehicle categories for dropdown - API trả về {message, data: [...]}
   const fetchVehicleCategories = async () => {
     try {
       const res = await get('vehicle-categories');
       const categories = Array.isArray(res) ? res : (res?.data || []);
-      const activeCategories = categories.filter(c => !c.deleted);
-      setVehicleCategories(activeCategories);
+      setVehicleCategories(categories);
+      console.log('Loaded vehicle categories:', categories);
     } catch (err) {
       console.error('Fetch categories error:', err);
       message.error('Không thể tải danh sách loại xe!');
     }
   };
 
-  // Fetch vehicle models
+  // Fetch vehicle models - API trả về {message, data: [...]}
+  // Cấu trúc mỗi model: { _id, tenDongXe, loaiXe: { _id, tenLoaiXe, moTa }, giaNiemYet, ... }
   const fetchVehicleModels = async () => {
     try {
       setLoading(true);
       const res = await get('vehicle-models');
       const list = Array.isArray(res) ? res : (res?.data || []);
-      // Filter out deleted items
-      const activeList = list.filter(item => !item.deleted);
-      setVehicleModels(activeList);
+      setVehicleModels(list);
+      console.log('Loaded vehicle models:', list);
     } catch (err) {
       console.error('Fetch vehicle models error:', err);
       message.error('Không thể tải danh sách dòng xe');
@@ -61,7 +61,7 @@ function AdminVehicleModels() {
   };
 
   const formatPrice = (price) => {
-    if (!price) return '0₫';
+    if (price === null || price === undefined) return '0₫';
     return Number(price).toLocaleString('vi-VN') + '₫';
   };
 
@@ -72,15 +72,15 @@ function AdminVehicleModels() {
 
   const handleOpenModal = (record = null) => {
     if (record) {
+      // record.loaiXe có thể là object { _id, tenLoaiXe } hoặc null
       setForm({
         tenDongXe: record.tenDongXe || '',
-        loaiXeId: record.loaiXeId?._id || record.loaiXeId || '',
+        loaiXe: record.loaiXe?._id || '',
         giaNiemYet: record.giaNiemYet || '',
         dungTichXiLanh: record.dungTichXiLanh || '',
         namSanXuat: record.namSanXuat || '',
         mucTieuThuNhienLieu: record.mucTieuThuNhienLieu || '',
         moTa: record.moTa || '',
-        deleted: false,
       });
       setEditingId(record._id);
     } else {
@@ -104,7 +104,7 @@ function AdminVehicleModels() {
       message.error('Vui lòng nhập tên dòng xe!');
       return;
     }
-    if (!form.loaiXeId) {
+    if (!form.loaiXe) {
       message.error('Vui lòng chọn loại xe!');
       return;
     }
@@ -119,15 +119,18 @@ function AdminVehicleModels() {
 
     setSubmitting(true);
     try {
+      // Payload gọi API - dùng tên trường khớp với schema: loaiXe thay vì loaiXeId
       const payload = {
         tenDongXe: form.tenDongXe.trim(),
-        loaiXeId: form.loaiXeId,
+        loaiXe: form.loaiXe,
         giaNiemYet: Number(form.giaNiemYet),
         dungTichXiLanh: Number(form.dungTichXiLanh),
-        namSanXuat: Number(form.namSanXuat),
-        mucTieuThuNhienLieu: Number(form.mucTieuThuNhienLieu),
+        namSanXuat: Number(form.namSanXuat) || new Date().getFullYear(),
+        mucTieuThuNhienLieu: Number(form.mucTieuThuNhienLieu) || 0,
         moTa: form.moTa?.trim() || '',
       };
+
+      console.log('Save vehicle model payload:', payload);
 
       let res;
       if (editingId) {
@@ -138,8 +141,10 @@ function AdminVehicleModels() {
         res = await post('vehicle-models/add', payload);
       }
 
-      if (res && (res.message?.includes('success') || res.data?._id || res._id)) {
-        message.success(editingId ? 'Cập nhật dòng xe thành công!' : 'Thêm dòng xe thành công!');
+      console.log('Save response:', res);
+
+      if (res && (res.message?.toLowerCase().includes('success') || res.data?._id || res._id)) {
+        message.success(res.message || (editingId ? 'Cập nhật dòng xe thành công!' : 'Thêm dòng xe thành công!'));
         handleCloseModal();
         fetchVehicleModels();
       } else {
@@ -154,23 +159,23 @@ function AdminVehicleModels() {
     }
   };
 
-  // Filter by search
+  // Filter by search - sửa vm.loaiXeId thành vm.loaiXe
   const filteredVehicleModels = vehicleModels.filter(vm => {
     if (!searchTerm) return true;
     const keyword = searchTerm.toLowerCase();
     const name = (vm.tenDongXe || '').toLowerCase();
-    const category = (vm.loaiXeId?.tenLoaiXe || '').toLowerCase();
+    const category = (vm.loaiXe?.tenLoaiXe || '').toLowerCase();
     return name.includes(keyword) || category.includes(keyword);
   });
 
-  // Get category name helper
-  const getCategoryName = (loaiXeId) => {
-    if (!loaiXeId) return '-';
-    if (typeof loaiXeId === 'string') {
-      const category = vehicleCategories.find(c => c._id === loaiXeId);
+  // Get category name helper - sửa tham số từ loaiXeId thành loaiXe
+  const getCategoryName = (loaiXe) => {
+    if (!loaiXe) return '-';
+    if (typeof loaiXe === 'string') {
+      const category = vehicleCategories.find(c => c._id === loaiXe);
       return category?.tenLoaiXe || '-';
     }
-    return loaiXeId?.tenLoaiXe || '-';
+    return loaiXe?.tenLoaiXe || '-';
   };
 
   const handleDelete = (id) => {
@@ -250,7 +255,7 @@ function AdminVehicleModels() {
                     <tr key={vm._id || idx}>
                       <td>{idx + 1}</td>
                       <td><span className="product-name">{vm.tenDongXe || '-'}</span></td>
-                      <td>{getCategoryName(vm.loaiXeId)}</td>
+                      <td>{getCategoryName(vm.loaiXe)}</td>
                       <td className="price-col">{formatPrice(vm.giaNiemYet)}</td>
                       <td>{vm.dungTichXiLanh ? `${vm.dungTichXiLanh}cc` : '-'}</td>
                       <td style={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
@@ -258,8 +263,8 @@ function AdminVehicleModels() {
                       </td>
                       <td>
                         <div className="action-btns">
-                          <button 
-                            className="btn-icon edit" 
+                          <button
+                            className="btn-icon edit"
                             title="Sửa"
                             onClick={() => handleOpenModal(vm)}
                           >
@@ -268,9 +273,9 @@ function AdminVehicleModels() {
                           <button className="btn-icon view" title="Xem">
                             <i className="fa-solid fa-eye"></i>
                           </button>
-                          <button 
-                            className="btn-icon delete" 
-                            title="Xóa" 
+                          <button
+                            className="btn-icon delete"
+                            title="Xóa"
                             onClick={() => handleDelete(vm._id)}
                           >
                             <i className="fa-solid fa-trash"></i>
@@ -320,8 +325,8 @@ function AdminVehicleModels() {
                     <div className="modal-field">
                       <label>Loại xe <span className="required">*</span></label>
                       <select
-                        name="loaiXeId"
-                        value={form.loaiXeId}
+                        name="loaiXe"
+                        value={form.loaiXe}
                         onChange={handleInput}
                         required
                       >
@@ -367,7 +372,7 @@ function AdminVehicleModels() {
                       <label>Mức tiêu thụ nhiên liệu <span className="required">*</span></label>
                       <input type="number" step="0.01" name="mucTieuThuNhienLieu" value={form.mucTieuThuNhienLieu} onChange={handleInput} required />
                     </div>
-                    
+
                     <div className="modal-field full-width">
                       <label>Mô tả</label>
                       <textarea
@@ -378,8 +383,6 @@ function AdminVehicleModels() {
                         rows="3"
                       />
                     </div>
-
-                   
                   </div>
                 </div>
               </div>

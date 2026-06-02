@@ -12,6 +12,7 @@ import AdminLayout from "../layout/AdminLayout";
 import AdminDashboard from "../pages/AdminDashboard";
 import AdminProducts from "../pages/AdminProducts";
 import AdminVehicleModels from "../pages/AdminVehicleModels";
+import AdminVehicleCategories from "../pages/AdminVehicleCategories";
 import AdminOrders from "../pages/AdminOrders";
 import AdminCustomers from "../pages/AdminCustomers";
 import AdminSettings from "../pages/AdminSettings";
@@ -20,7 +21,6 @@ import About from "../pages/About";
 export const routes = [
     // === CLIENT ROUTES ===
     {
-        path: "/",
         element : <LayoutDefault />,
         children : [
             { index: true, element: <Home /> },
@@ -56,6 +56,7 @@ export const routes = [
             { path: "dashboard", element: <AdminDashboard /> },
             { path: "vehicles", element: <AdminProducts /> },
             { path: "vehicle-models", element: <AdminVehicleModels /> },
+            { path: "vehicle-categories", element: <AdminVehicleCategories /> },
             { path: "orders", element: <AdminOrders /> },
             { path: "customers", element: <AdminCustomers /> },
             { path: "settings", element: <AdminSettings /> },

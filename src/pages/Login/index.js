@@ -41,14 +41,20 @@ function Login() {
         // Save token & user info to cookie
         // rememberMe=true: 30-day persistent cookie, rememberMe=false: session cookie (expires when browser closes)
         const days = formData.rememberMe ? 30 : 0;
-        setCookie('token', user.id, days);
+        // Token usually embedded in response.user
+        const token = response.user?.token || response.user?.accessToken || response.token || response.accessToken || response.data?.token;
+        if (token) {
+          setCookie('token', token, days);
+        }
+        // save user info
+      
         setCookie('userId', user.id, days);
         setCookie('fullName', user.fullName, days);
         setCookie('email', user.email, days);
         setCookie('phoneNumber', user.phoneNumber || '', days);
         setCookie('address', user.address || '', days);
         setCookie('cccd', user.cccd || '', days);
-
+        setCookie('avatar', user?.avatar || '');
         // Dispatch login to Redux
         dispatch(checkLogin(true));
         

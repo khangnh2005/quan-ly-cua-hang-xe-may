@@ -14,8 +14,9 @@ const COLOR_OPTIONS = ['Đen', 'Trắng', 'Đỏ', 'Xanh', 'Bạc', 'Xám', 'Nâ
 
 // Initial state cho form thêm xe mới
 // (giá niêm yết & mô tả lấy từ Vehicle Model - không nhập tay)
+// Lưu ý: API dùng tên trường "dongXe" (KHÔNG phải dongXeId)
 const emptyVehicle = {
-  dongXeId: '',
+  dongXe: '',
   soKhung: '',
   soMay: '',
   mauSac: 'Đen',
@@ -40,26 +41,26 @@ function AdminProducts() {
   // Lấy danh sách dòng xe để chọn
   const fetchVehicleModels = async () => {
     try {
-      // API trả về MẢNG trực tiếp, không bọc trong {data: [...]}
+      // API trả về {message, data: [...]}
       const res = await get('vehicle-models');
       const models = Array.isArray(res) ? res : (res?.data || []);
-      // Lọc ra những model chưa bị xóa
-      const activeModels = models.filter(m => !m.deleted);
-      setVehicleModels(activeModels);
-      console.log('Loaded vehicle models:', activeModels);
+      setVehicleModels(models);
+      console.log('Loaded vehicle models:', models);
     } catch (err) {
       console.error('Fetch models error:', err);
       message.error('Không thể tải danh sách dòng xe!');
     }
   };
 
-  // Lấy danh sách xe
+  // Lấy danh sách xe - API trả về {message, data: [...]}
+  // Cấu trúc mỗi xe: { _id, soKhung, soMay, dongXe: { tenDongXe, loaiXe: { tenLoaiXe }, giaNiemYet, ... }, mauSac, namSanXuat, trangThaiXe }
   const fetchProducts = async () => {
     try {
       setLoading(true);
       const res = await get('vehicles');
       const list = Array.isArray(res) ? res : (res?.data || []);
       setProducts(list);
+      console.log('Loaded vehicles:', list);
     } catch (err) {
       console.error('Fetch products error:', err);
       message.error('Không thể tải danh sách sản phẩm');
@@ -69,7 +70,7 @@ function AdminProducts() {
   };
 
   const formatPrice = (price) => {
-    if (!price) return '0₫';
+    if (price === null || price === undefined) return '0₫';
     return Number(price).toLocaleString('vi-VN') + '₫';
   };
 
@@ -89,13 +90,13 @@ function AdminProducts() {
   };
 
   // Lấy thông tin model đang được chọn
-  const selectedModel = vehicleModels.find(m => m._id === form.dongXeId);
+  const selectedModel = vehicleModels.find(m => m._id === form.dongXe);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     // Validate cơ bản
-    if (!form.dongXeId) {
+    if (!form.dongXe) {
       message.error('Vui lòng chọn dòng xe!');
       return;
     }
@@ -110,12 +111,11 @@ function AdminProducts() {
 
     setSubmitting(true);
     try {
-      // Payload gọi API - CHỈ gửi các trường có trong schema Vehicle
-      // KHÔNG gửi giaNiemYet, moTa vì 2 trường này thuộc Vehicle Model
+      // Payload gọi API - dùng tên trường khớp với schema: dongXe, soKhung, soMay, mauSac, namSanXuat, trangThaiXe
       const payload = {
         soKhung: form.soKhung.trim(),
         soMay: form.soMay.trim(),
-        dongXeId: form.dongXeId,
+        dongXe: form.dongXe,
         mauSac: form.mauSac,
         namSanXuat: Number(form.namSanXuat),
         trangThaiXe: form.trangThaiXe,
@@ -126,7 +126,7 @@ function AdminProducts() {
       const res = await post('vehicles/add', payload);
       console.log('Add vehicle response:', res);
 
-      if (res && (res.message?.includes('success') || res.data?._id || res._id)) {
+      if (res && (res.message?.toLowerCase().includes('success') || res.data?._id || res._id)) {
         message.success(res.message || 'Thêm sản phẩm thành công!');
         handleCloseModal();
         fetchProducts();
@@ -150,15 +150,26 @@ function AdminProducts() {
   const filteredProducts = products.filter(p => {
     if (!searchTerm) return true;
     const keyword = searchTerm.toLowerCase();
-    const name = (p.dongXeId?.tenDongXe || '').toLowerCase();
-    const brand = (p.dongXeId?.loaiXeId?.tenLoaiXe || '').toLowerCase();
-    return name.includes(keyword) || brand.includes(keyword);
+    const name = (p.dongXe?.tenDongXe || '').toLowerCase();
+    const brand = (p.dongXe?.loaiXe?.tenLoaiXe || '').toLowerCase();
+    const color = (p.mauSac || '').toLowerCase();
+    const frame = (p.soKhung || '').toLowerCase();
+    const engine = (p.soMay || '').toLowerCase();
+    return name.includes(keyword) || brand.includes(keyword) || color.includes(keyword) || frame.includes(keyword) || engine.includes(keyword);
   });
 
   // Helper: hiển thị label trang thái đẹp
   const getStatusLabel = (val) => {
     const opt = STATUS_OPTIONS.find(s => s.value === val);
     return opt ? opt.label : val;
+  };
+
+  // Helper: lấy class màu cho status badge
+  const getStatusClass = (val) => {
+    if (val === 'ConHang') return 'success';
+    if (val === 'HetHang') return 'danger';
+    if (val === 'DangBaoTri') return 'warning';
+    return 'secondary';
   };
 
   const handleDelete = (id) => {
@@ -242,16 +253,16 @@ function AdminProducts() {
                         <div className="product-thumb">
                           <img
                             src="https://cdn.honda.com.vn/motorbikes/November2024/sYTCNfgI5E0JUJ8BCTQ3.png"
-                            alt={product.dongXeId?.tenDongXe}
+                            alt={product.dongXe?.tenDongXe}
                           />
                         </div>
                       </td>
-                      <td><span className="product-name">{product.dongXeId?.tenDongXe || '-'}</span></td>
-                      <td>{product.dongXeId?.loaiXeId?.tenLoaiXe || '-'}</td>
+                      <td><span className="product-name">{product.dongXe?.tenDongXe || '-'}</span></td>
+                      <td>{product.dongXe?.loaiXe?.tenLoaiXe || '-'}</td>
                       <td>{product.mauSac || '-'}</td>
-                      <td className="price-col">{formatPrice(product.dongXeId?.giaNiemYet)}</td>
+                      <td className="price-col">{formatPrice(product.dongXe?.giaNiemYet)}</td>
                       <td>
-                        <span className={`status-badge ${product.trangThaiXe === 'ConHang' ? 'success' : 'danger'}`}>
+                        <span className={`status-badge ${getStatusClass(product.trangThaiXe)}`}>
                           {getStatusLabel(product.trangThaiXe)}
                         </span>
                       </td>
@@ -291,8 +302,8 @@ function AdminProducts() {
                     <div className="modal-field">
                       <label>Dòng xe <span className="required">*</span></label>
                       <select
-                        name="dongXeId"
-                        value={form.dongXeId}
+                        name="dongXe"
+                        value={form.dongXe}
                         onChange={handleInput}
                         required
                       >
@@ -310,7 +321,7 @@ function AdminProducts() {
                       <div className="model-info-box">
                         <div className="info-row">
                           <span className="info-label">Loại xe:</span>
-                          <span className="info-value">{selectedModel.loaiXeId?.tenLoaiXe || '-'}</span>
+                          <span className="info-value">{selectedModel.loaiXe?.tenLoaiXe || '-'}</span>
                         </div>
                         <div className="info-row">
                           <span className="info-label">Giá niêm yết:</span>
