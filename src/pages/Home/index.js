@@ -36,9 +36,8 @@ function Home() {
       try {
         setLoading(true);
         const response = await get('vehicles');
-        if (response && response.data) {
-          setVehicles(response.data);
-        }
+        const list = Array.isArray(response) ? response : (response?.data || []);
+        setVehicles(list);
       } catch (err) {
         setError('Không thể tải dữ liệu xe. Vui lòng thử lại sau.');
         console.error('Error fetching vehicles:', err);
@@ -51,12 +50,12 @@ function Home() {
 
   // Extract unique brands and models from data
   const uniqueBrands = useMemo(() => {
-    const brands = [...new Set(vehicles.map(v => v.dongXeId?.tenHang).filter(Boolean))];
+    const brands = [...new Set(vehicles.map(v => v.dongXe?.loaiXe?.tenLoaiXe).filter(Boolean))];
     return brands;
   }, [vehicles]);
 
   const uniqueModels = useMemo(() => {
-    const models = [...new Set(vehicles.map(v => v.dongXeId?.tenDongXe).filter(Boolean))];
+    const models = [...new Set(vehicles.map(v => v.dongXe?.tenDongXe).filter(Boolean))];
     return models;
   }, [vehicles]);
 
@@ -110,9 +109,9 @@ function Home() {
   }
 
   const filteredVehicles = vehicles.filter(item => {
-    const brand = item.dongXeId?.tenHang || '';
-    const model = item.dongXeId?.tenDongXe || '';
-    const price = item.dongXeId?.giaNiemYet || 0;
+    const brand = item.dongXe?.loaiXe?.tenLoaiXe || '';
+    const model = item.dongXe?.tenDongXe || '';
+    const price = item.dongXe?.giaNiemYet || 0;
     const searchText = (model + ' ' + brand).toLowerCase();
     const matchBrand = activeBrands.length === 0 || activeBrands.includes(brand);
     const matchModel = activeModels.length === 0 || activeModels.includes(model);
@@ -188,13 +187,13 @@ function Home() {
           {vehicles.slice(0, 3).map(vehicle => (
             <Link to={`/product/detail/${vehicle._id}`} className="product-card" key={vehicle._id} style={{ textDecoration: 'none' }}>
               <img
-                src={getBrandImage(vehicle.dongXeId?.tenHang)}
-                alt={vehicle.dongXeId?.tenDongXe}
+                src={getBrandImage(vehicle.dongXe?.loaiXe?.tenLoaiXe)}
+                alt={vehicle.dongXe?.tenDongXe}
               />
-              <h3>{vehicle.dongXeId?.tenDongXe}</h3>
-              <p className="price">Giá: {formatPrice(vehicle.dongXeId?.giaNiemYet)}</p>
+              <h3>{vehicle.dongXe?.tenDongXe}</h3>
+              <p className="price">Giá: {formatPrice(vehicle.dongXe?.giaNiemYet)}</p>
               <p style={{ fontSize: '13px', color: '#666', marginTop: '5px' }}>
-                {vehicle.dongXeId?.tenHang} - {vehicle.mauSac}
+                {vehicle.dongXe?.loaiXe?.tenLoaiXe} - {vehicle.mauSac}
               </p>
             </Link>
           ))}
@@ -299,16 +298,16 @@ function Home() {
                 filteredVehicles.map(vehicle => (
                   <Link to={`/product/detail/${vehicle._id}`} className="product-item" key={vehicle._id} style={{ textDecoration: 'none' }}>
                     <img
-                      src={getBrandImage(vehicle.dongXeId?.tenHang)}
-                      alt={vehicle.dongXeId?.tenDongXe}
+                      src={getBrandImage(vehicle.dongXe?.loaiXe?.tenLoaiXe)}
+                      alt={vehicle.dongXe?.tenDongXe}
                     />
-                    <h4>{vehicle.dongXeId?.tenDongXe}</h4>
-                    <p className="price">Giá: {formatPrice(vehicle.dongXeId?.giaNiemYet)}</p>
+                    <h4>{vehicle.dongXe?.tenDongXe}</h4>
+                    <p className="price">Giá: {formatPrice(vehicle.dongXe?.giaNiemYet)}</p>
                     <p style={{ fontSize: '12px', color: '#999', marginTop: '3px' }}>
-                      {vehicle.dongXeId?.tenHang} - {vehicle.mauSac || 'Chưa có màu'}
+                      {vehicle.dongXe?.loaiXe?.tenLoaiXe} - {vehicle.mauSac || 'Chưa có màu'}
                     </p>
                     <p style={{ fontSize: '11px', color: '#aaa', marginTop: '2px' }}>
-                      {vehicle.trangThaiXe === 'Còn hàng' ? (
+                      {vehicle.trangThaiXe === 'ConHang' ? (
                         <span style={{ color: '#28a745' }}>● Còn hàng</span>
                       ) : (
                         <span style={{ color: '#dc3545' }}>● Hết hàng</span>

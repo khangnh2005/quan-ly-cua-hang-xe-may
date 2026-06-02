@@ -85,7 +85,7 @@ function AdminVehicleCategories() {
       let res;
       if (editingId) {
         // Update existing
-        res = await patch(`vehicle-categories/update/${editingId}`, payload);
+        res = await post(`vehicle-categories/update/${editingId}`, payload);
       } else {
         // Create new
         res = await post('vehicle-categories/add', payload);

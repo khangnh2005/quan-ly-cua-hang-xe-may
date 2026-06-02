@@ -7,7 +7,7 @@ import '../../css/admin.scss';
 // Lưu ý: API dùng tên trường "loaiXe" (KHÔNG phải loaiXeId)
 const emptyVehicleModel = {
   tenDongXe: '',
-  loaiXe: '',
+  loaiXeId: '',
   giaNiemYet: '',
   dungTichXiLanh: '',
   namSanXuat: '',
@@ -73,9 +73,10 @@ function AdminVehicleModels() {
   const handleOpenModal = (record = null) => {
     if (record) {
       // record.loaiXe có thể là object { _id, tenLoaiXe } hoặc null
+      // record.loaiXe là object { _id, tenLoaiXe, moTa } - lấy _id để set vào form
       setForm({
         tenDongXe: record.tenDongXe || '',
-        loaiXe: record.loaiXe?._id || '',
+        loaiXeId: record.loaiXe?._id || '',
         giaNiemYet: record.giaNiemYet || '',
         dungTichXiLanh: record.dungTichXiLanh || '',
         namSanXuat: record.namSanXuat || '',
@@ -104,7 +105,7 @@ function AdminVehicleModels() {
       message.error('Vui lòng nhập tên dòng xe!');
       return;
     }
-    if (!form.loaiXe) {
+    if (!form.loaiXeId) {
       message.error('Vui lòng chọn loại xe!');
       return;
     }
@@ -122,7 +123,7 @@ function AdminVehicleModels() {
       // Payload gọi API - dùng tên trường khớp với schema: loaiXe thay vì loaiXeId
       const payload = {
         tenDongXe: form.tenDongXe.trim(),
-        loaiXe: form.loaiXe,
+        loaiXeId: form.loaiXeId,
         giaNiemYet: Number(form.giaNiemYet),
         dungTichXiLanh: Number(form.dungTichXiLanh),
         namSanXuat: Number(form.namSanXuat) || new Date().getFullYear(),
@@ -135,7 +136,7 @@ function AdminVehicleModels() {
       let res;
       if (editingId) {
         // Update existing
-        res = await patch(`vehicle-models/update/${editingId}`, payload);
+        res = await post(`vehicle-models/update/${editingId}`, payload);
       } else {
         // Create new
         res = await post('vehicle-models/add', payload);
@@ -159,7 +160,7 @@ function AdminVehicleModels() {
     }
   };
 
-  // Filter by search - sửa vm.loaiXeId thành vm.loaiXe
+  // Filter by search
   const filteredVehicleModels = vehicleModels.filter(vm => {
     if (!searchTerm) return true;
     const keyword = searchTerm.toLowerCase();
@@ -168,7 +169,7 @@ function AdminVehicleModels() {
     return name.includes(keyword) || category.includes(keyword);
   });
 
-  // Get category name helper - sửa tham số từ loaiXeId thành loaiXe
+  // Get category name helper
   const getCategoryName = (loaiXe) => {
     if (!loaiXe) return '-';
     if (typeof loaiXe === 'string') {
@@ -325,8 +326,8 @@ function AdminVehicleModels() {
                     <div className="modal-field">
                       <label>Loại xe <span className="required">*</span></label>
                       <select
-                        name="loaiXe"
-                        value={form.loaiXe}
+                        name="loaiXeId"
+                        value={form.loaiXeId}
                         onChange={handleInput}
                         required
                       >
