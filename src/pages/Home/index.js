@@ -7,17 +7,18 @@ function formatPrice(price) {
   return price.toLocaleString('vi-VN') + ' VND';
 }
 
-// Brand logo/map for vehicle images
-const brandImages = {
-  'Honda': 'https://cdn.honda.com.vn/motorbikes/November2024/sYTCNfgI5E0JUJ8BCTQ3.png',
-  'Toyota': 'https://cdn.honda.com.vn/motorbikes/July2024/humYsFoqZxFLaMIhklZH.png',
-  'Yamaha': 'https://cdn.honda.com.vn/motorbikes/September2025/5YOfKqH70BnHpaU1CHvu.png',
-  'Suzuki': 'https://cdn.honda.com.vn/motorbikes/August2024/3mJZ9NV7sBmWVJalt796.png',
-  'default': 'https://cdn.honda.com.vn/motorbikes/August2024/OdEB73r6Io8GOwX51wTV.png',
-};
+const DEFAULT_VEHICLE_IMAGE = 'https://cdn.honda.com.vn/motorbikes/November2024/sYTCNfgI5E0JUJ8BCTQ3.png';
 
-function getBrandImage(brand) {
-  return brandImages[brand] || brandImages['default'];
+function getVehicleImage(vehicle) {
+  if (vehicle?.hinhAnh) {
+    if (Array.isArray(vehicle.hinhAnh) && vehicle.hinhAnh.length > 0) {
+      return vehicle.hinhAnh[0] || DEFAULT_VEHICLE_IMAGE;
+    }
+    if (typeof vehicle.hinhAnh === 'string' && vehicle.hinhAnh.trim()) {
+      return vehicle.hinhAnh;
+    }
+  }
+  return DEFAULT_VEHICLE_IMAGE;
 }
 
 function Home() {
@@ -187,7 +188,7 @@ function Home() {
           {vehicles.slice(0, 3).map(vehicle => (
             <Link to={`/product/detail/${vehicle._id}`} className="product-card" key={vehicle._id} style={{ textDecoration: 'none' }}>
               <img
-                src={getBrandImage(vehicle.dongXe?.loaiXe?.tenLoaiXe)}
+                src={getVehicleImage(vehicle)}
                 alt={vehicle.dongXe?.tenDongXe}
               />
               <h3>{vehicle.dongXe?.tenDongXe}</h3>
@@ -298,7 +299,7 @@ function Home() {
                 filteredVehicles.map(vehicle => (
                   <Link to={`/product/detail/${vehicle._id}`} className="product-item" key={vehicle._id} style={{ textDecoration: 'none' }}>
                     <img
-                      src={getBrandImage(vehicle.dongXe?.loaiXe?.tenLoaiXe)}
+                      src={getVehicleImage(vehicle)}
                       alt={vehicle.dongXe?.tenDongXe}
                     />
                     <h4>{vehicle.dongXe?.tenDongXe}</h4>

@@ -7,16 +7,18 @@ function formatPrice(price) {
   return price.toLocaleString('vi-VN') + ' VND';
 }
 
-const brandImages = {
-  'Honda': 'https://cdn.honda.com.vn/motorbikes/November2024/sYTCNfgI5E0JUJ8BCTQ3.png',
-  'Toyota': 'https://cdn.honda.com.vn/motorbikes/July2024/humYsFoqZxFLaMIhklZH.png',
-  'Yamaha': 'https://cdn.honda.com.vn/motorbikes/September2025/5YOfKqH70BnHpaU1CHvu.png',
-  'Suzuki': 'https://cdn.honda.com.vn/motorbikes/August2024/3mJZ9NV7sBmWVJalt796.png',
-  'default': 'https://cdn.honda.com.vn/motorbikes/August2024/OdEB73r6Io8GOwX51wTV.png',
-};
+const DEFAULT_VEHICLE_IMAGE = 'https://cdn.honda.com.vn/motorbikes/November2024/sYTCNfgI5E0JUJ8BCTQ3.png';
 
-function getBrandImage(brand) {
-  return brandImages[brand] || brandImages['default'];
+function getVehicleImage(vehicle) {
+  if (vehicle?.hinhAnh) {
+    if (Array.isArray(vehicle.hinhAnh) && vehicle.hinhAnh.length > 0) {
+      return vehicle.hinhAnh[0] || DEFAULT_VEHICLE_IMAGE;
+    }
+    if (typeof vehicle.hinhAnh === 'string' && vehicle.hinhAnh.trim()) {
+      return vehicle.hinhAnh;
+    }
+  }
+  return DEFAULT_VEHICLE_IMAGE;
 }
 
 function ProductDetail() {
@@ -31,8 +33,11 @@ function ProductDetail() {
       try {
         setLoading(true);
         const response = await get(`vehicles/detail/${id}`);
-        if (response && response.data) {
-          setVehicle(response.data);
+        console.log('Vehicle detail response:', response);
+        // Hỗ trợ nhiều kiểu response: response.data hoặc response trực tiếp
+        const data = response?.data || response;
+        if (data && data._id) {
+          setVehicle(data);
         } else {
           setError('Không tìm thấy sản phẩm.');
         }
@@ -71,14 +76,14 @@ function ProductDetail() {
     );
   }
 
-  const { dongXeId, mauSac, soKhung, soMay, trangThaiXe, createdAt } = vehicle;
+  const { dongXe, mauSac, soKhung, soMay, trangThaiXe, namSanXuat, createdAt } = vehicle;
 
   return (
     <div className="product-detail-page">
       <div className="detail-breadcrumb">
         <Link to="/">Trang chủ</Link>
         <span className="breadcrumb-sep">/</span>
-        <span>{dongXeId?.tenDongXe}</span>
+        <span>{dongXe?.tenDongXe}</span>
       </div>
 
       <div className="detail-main">
@@ -86,41 +91,41 @@ function ProductDetail() {
         <div className="detail-image-section">
           <div className="detail-image-wrapper">
             <img
-              src={getBrandImage(dongXeId?.tenHang)}
-              alt={dongXeId?.tenDongXe}
+              src={getVehicleImage(vehicle)}
+              alt={dongXe?.tenDongXe}
             />
           </div>
           <div className="detail-thumbnails">
             <div className="thumb-item active">
-              <img src={getBrandImage(dongXeId?.tenHang)} alt="thumb" />
+              <img src={getVehicleImage(vehicle)} alt="thumb" />
             </div>
             <div className="thumb-item">
-              <img src={getBrandImage(dongXeId?.tenHang)} alt="thumb" />
+              <img src={getVehicleImage(vehicle)} alt="thumb" />
             </div>
             <div className="thumb-item">
-              <img src={getBrandImage(dongXeId?.tenHang)} alt="thumb" />
+              <img src={getVehicleImage(vehicle)} alt="thumb" />
             </div>
           </div>
         </div>
 
         {/* Right - Info */}
         <div className="detail-info-section">
-          <h1 className="detail-title">{dongXeId?.tenDongXe}</h1>
+          <h1 className="detail-title">{dongXe?.tenDongXe}</h1>
           <p className="detail-brand">
-            <span className="label">Hãng sản xuất:</span> {dongXeId?.tenHang}
+            <span className="label">Hãng sản xuất:</span> {dongXe?.tenDongXe}
           </p>
           <p className="detail-year">
-            <span className="label">Năm sản xuất:</span> {dongXeId?.namSanXuat}
+            <span className="label">Năm sản xuất:</span> {namSanXuat || dongXe?.namSanXuat || 'Đang cập nhật'}
           </p>
 
           <div className="detail-price-box">
             <span className="price-label">Giá niêm yết:</span>
-            <span className="price-value">{formatPrice(dongXeId?.giaNiemYet)}</span>
+            <span className="price-value">{formatPrice(dongXe?.giaNiemYet)}</span>
           </div>
 
           <div className="detail-status">
             <span className="label">Trạng thái:</span>
-            {trangThaiXe === 'Còn hàng' ? (
+            {trangThaiXe === 'ConHang' ? (
               <span className="status-instock">● Còn hàng</span>
             ) : (
               <span className="status-outstock">● Hết hàng</span>
@@ -144,23 +149,23 @@ function ProductDetail() {
                   <td className="spec-value">{mauSac}</td>
                 </tr>
                 <tr>
-                  <td className="spec-key">Mô tả</td>
-                  <td className="spec-value">{dongXeId?.moTa || 'Đang cập nhật'}</td>
+                  <td className="spec-key">Dung tích xy-lanh</td>
+                  <td className="spec-value">{dongXe?.dungTichXiLanh ? `${dongXe.dungTichXiLanh}cc` : 'Đang cập nhật'}</td>
                 </tr>
                 <tr>
-                  <td className="spec-key">Ngày nhập</td>
-                  <td className="spec-value">
-                    {createdAt ? new Date(createdAt).toLocaleDateString('vi-VN') : 'Đang cập nhật'}
-                  </td>
+                  <td className="spec-key">Mức tiêu thụ nhiên liệu</td>
+                  <td className="spec-value">{dongXe?.mucTieuThuNhienLieu ? `${dongXe.mucTieuThuNhienLieu} L/100km` : 'Đang cập nhật'}</td>
                 </tr>
+                <tr>
+                  <td className="spec-key">Mô tả</td>
+                  <td className="spec-value">{dongXe?.moTa || 'Đang cập nhật'}</td>
+                </tr>
+                
               </tbody>
             </table>
           </div>
 
           <div className="detail-actions">
-            <button className="btn-add-cart" onClick={handleRedirectToLogin}>
-              <i className="fa fa-shopping-cart"></i> Thêm vào giỏ hàng
-            </button>
             <button className="btn-buy-now" onClick={handleRedirectToLogin}>
               <i className="fa fa-bolt"></i> Mua ngay
             </button>

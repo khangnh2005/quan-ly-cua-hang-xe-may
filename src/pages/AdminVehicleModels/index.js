@@ -54,7 +54,7 @@ function AdminVehicleModels() {
       console.log('Loaded vehicle models:', list);
     } catch (err) {
       console.error('Fetch vehicle models error:', err);
-      message.error('Không thể tải danh sách dòng xe');
+      message.error('Không thể tải danh sách hãng xe');
     } finally {
       setLoading(false);
     }
@@ -102,7 +102,7 @@ function AdminVehicleModels() {
 
     // Validate
     if (!form.tenDongXe.trim()) {
-      message.error('Vui lòng nhập tên dòng xe!');
+      message.error('Vui lòng nhập tên hãng xe!');
       return;
     }
     if (!form.loaiXeId) {
@@ -145,7 +145,7 @@ function AdminVehicleModels() {
       console.log('Save response:', res);
 
       if (res && (res.message?.toLowerCase().includes('success') || res.data?._id || res._id)) {
-        message.success(res.message || (editingId ? 'Cập nhật dòng xe thành công!' : 'Thêm dòng xe thành công!'));
+        message.success(res.message || (editingId ? 'Cập nhật hãng xe thành công!' : 'Thêm hãng xe thành công!'));
         handleCloseModal();
         fetchVehicleModels();
       } else {
@@ -181,8 +181,8 @@ function AdminVehicleModels() {
 
   const handleDelete = (id) => {
     Modal.confirm({
-      title: 'Bạn có chắc chắn muốn xóa dòng xe này?',
-      content: 'Hành động này sẽ xóa vĩnh viễn dòng xe khỏi hệ thống.',
+      title: 'Bạn có chắc chắn muốn xóa hãng xe này?',
+      content: 'Hành động này sẽ xóa vĩnh viễn hãng xe khỏi hệ thống.',
       okText: 'Xóa',
       okType: 'danger',
       cancelText: 'Hủy',
@@ -190,11 +190,11 @@ function AdminVehicleModels() {
         try {
           const res = await del(`vehicle-models/delete/${id}`);
           if (res) {
-            message.success('Đã xóa dòng xe thành công!');
+            message.success('Đã xóa hãng xe thành công!');
             fetchVehicleModels();
           }
         } catch (err) {
-          message.error('Không thể xóa dòng xe!');
+          message.error('Không thể xóa hãng xe!');
         }
       },
       onCancel() {
@@ -211,7 +211,7 @@ function AdminVehicleModels() {
             <i className="fa-solid fa-search"></i>
             <input
               type="text"
-              placeholder="Tìm kiếm dòng xe..."
+              placeholder="Tìm kiếm hãng xe..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
             />
@@ -219,7 +219,7 @@ function AdminVehicleModels() {
         </div>
         <div className="toolbar-right">
           <button className="btn-admin-primary" onClick={() => handleOpenModal()}>
-            <i className="fa-solid fa-plus"></i> Thêm dòng xe
+            <i className="fa-solid fa-plus"></i> Thêm hãng xe
           </button>
           <button className="btn-admin-secondary">
             <i className="fa-solid fa-download"></i> Xuất Excel
@@ -236,7 +236,7 @@ function AdminVehicleModels() {
               <thead>
                 <tr>
                   <th style={{ width: '50px' }}>STT</th>
-                  <th>Tên dòng xe</th>
+                  <th>Tên hãng xe</th>
                   <th>Loại xe</th>
                   <th>Giá niêm yết</th>
                   <th>Dung tích</th>
@@ -248,7 +248,7 @@ function AdminVehicleModels() {
                 {filteredVehicleModels.length === 0 ? (
                   <tr>
                     <td colSpan={7} style={{ textAlign: 'center', padding: '30px', color: '#999' }}>
-                      {searchTerm ? 'Không tìm thấy dòng xe phù hợp' : 'Chưa có dòng xe nào'}
+                      {searchTerm ? 'Không tìm thấy hãng xe phù hợp' : 'Chưa có hãng xe nào'}
                     </td>
                   </tr>
                 ) : (
@@ -299,7 +299,7 @@ function AdminVehicleModels() {
             <div className="modal-header">
               <h3>
                 <i className={`fa-solid ${editingId ? 'fa-pen-to-square' : 'fa-plus-circle'}`}></i>
-                {editingId ? 'Sửa dòng xe' : 'Thêm dòng xe mới'}
+                {editingId ? 'Sửa hãng xe' : 'Thêm hãng xe mới'}
               </h3>
               <button className="modal-close" onClick={handleCloseModal}>
                 <i className="fa-solid fa-xmark"></i>
@@ -309,10 +309,10 @@ function AdminVehicleModels() {
               <div className="modal-body">
                 <div className="modal-grid">
                   <div className="modal-section">
-                    <h4 className="section-label">Thông tin dòng xe</h4>
+                    <h4 className="section-label">Thông tin hãng xe</h4>
 
                     <div className="modal-field">
-                      <label>Tên dòng xe <span className="required">*</span></label>
+                      <label>Tên hãng xe <span className="required">*</span></label>
                       <input
                         type="text"
                         name="tenDongXe"
@@ -380,7 +380,7 @@ function AdminVehicleModels() {
                         name="moTa"
                         value={form.moTa}
                         onChange={handleInput}
-                        placeholder="Nhập mô tả chi tiết về dòng xe..."
+                        placeholder="Nhập mô tả chi tiết về hãng xe..."
                         rows="3"
                       />
                     </div>
@@ -395,7 +395,7 @@ function AdminVehicleModels() {
                   {submitting ? (
                     <><i className="fa fa-spinner fa-spin"></i> Đang lưu...</>
                   ) : (
-                    <><i className="fa-solid fa-floppy-disk"></i> {editingId ? 'Cập nhật' : 'Thêm dòng xe'}</>
+                    <><i className="fa-solid fa-floppy-disk"></i> {editingId ? 'Cập nhật' : 'Thêm hãng xe'}</>
                   )}
                 </button>
               </div>
