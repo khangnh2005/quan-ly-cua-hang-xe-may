@@ -36,6 +36,9 @@ export const post = async(path , data) =>{
         body: JSON.stringify(data)
     });
     const result = await response.json();
+    if (!response.ok) {
+        throw new Error(result.message || 'Lỗi server!');
+    }
     return result;
 }
 
