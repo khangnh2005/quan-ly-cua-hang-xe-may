@@ -96,6 +96,11 @@ function Home() {
 
   function handleCategoryClick(category) {
     setActiveCategory(category);
+    if (category === 'Tất Cả') {
+      setActiveBrands(uniqueBrands);
+    } else {
+      setActiveBrands([category]);
+    }
   }
 
   function matchesPrice(price) {
@@ -149,34 +154,34 @@ function Home() {
       <section className="banner">
         <div className="banner-content">
           <img
-            src="https://img.pikbest.com/origin/09/06/74/70BpIkbEsTJRA.jpg!bw800"
+            src="https://hondatanthu.com.vn/admin/img/gallery/8841d7cc8fedcd0bd8bf913a3adb4fbb.png"
             alt="Promotion Banner"
           />
         </div>
       </section>
 
-      {/* CATEGORY MENU - Now using brands */}
-      <section className="category-menu">
-        <ul>
-          <li
-            className={activeCategory === 'Tất Cả' ? 'active' : ''}
-            onClick={() => handleCategoryClick('Tất Cả')}
-          >
-            Tất Cả
-          </li>
-          {uniqueBrands.map(brand => (
-            <li
-              key={brand}
-              className={activeCategory === brand ? 'active' : ''}
-              onClick={() => {
-                setActiveCategory(brand);
-                setActiveBrands([brand]);
-              }}
-            >
-              {brand}
-            </li>
-          ))}
-        </ul>
+      
+
+      {/* BANNER QUẢNG CÁO - FULL WIDTH */}
+      <section className="promo-banners">
+        <div className="promo-item">
+          <img
+            src="https://hondath.vn/wp-content/uploads/2024/04/3.webp"
+            alt="Khuyến mãi 1"
+          />
+        </div>
+        <div className="promo-item">
+          <img
+            src="https://hondath.vn/wp-content/uploads/2024/04/4.webp"
+            alt="Khuyến mãi 2"
+          />
+        </div>
+        <div className="promo-item">
+          <img
+            src="https://hondath.vn/wp-content/uploads/2024/04/5.webp"
+            alt="Khuyến mãi 3"
+          />
+        </div>
       </section>
 
       {/* SẢN PHẨM NỔI BẬT */}
@@ -201,8 +206,6 @@ function Home() {
         </div>
       </section>
 
-      <hr className="section-divider" />
-
       {/* TÌM KIẾM & LỌC */}
       <section className="search-filter-section" id="search-section">
         <div className="search-filter-header">
@@ -224,13 +227,39 @@ function Home() {
           </div>
         </div>
 
+        <hr className="section-divider" />
+
+            {/* DANH MỤC LOẠI XE */}
+        <section className="category-menu">
+          <ul>
+            <li
+              className={activeCategory === 'Tất Cả' ? 'active' : ''}
+              onClick={() => handleCategoryClick('Tất Cả')}
+            >
+              Tất Cả
+            </li>
+            {uniqueBrands.map(brand => (
+              <li
+                key={brand}
+                className={activeCategory === brand ? 'active' : ''}
+                onClick={() => {
+                  setActiveCategory(brand);
+                  setActiveBrands([brand]);
+                }}
+              >
+                {brand}
+              </li>
+            ))}
+          </ul>
+        </section>
+
         <div className="search-filter-body">
           {/* SIDEBAR LỌC */}
           <aside className="sidebar">
             {/* Filter by Brand */}
             <div className="filter-section">
               <h3>
-                Hãng xe <i className="fa fa-filter" style={{ color: '#ed1c24' }}></i>
+                Loại xe <i className="fa fa-filter" style={{ color: '#ed1c24' }}></i>
               </h3>
               {uniqueBrands.map(brand => (
                 <label key={brand}>
@@ -247,7 +276,7 @@ function Home() {
             {/* Filter by Model */}
             <div className="filter-section">
               <h3>
-                Dòng xe <i className="fa fa-filter" style={{ color: '#ed1c24' }}></i>
+                Hãng xe <i className="fa fa-filter" style={{ color: '#ed1c24' }}></i>
               </h3>
               {uniqueModels.map(model => (
                 <label key={model}>
@@ -323,6 +352,7 @@ function Home() {
           </section>
         </div>
       </section>
+
     </div>
   );
 }

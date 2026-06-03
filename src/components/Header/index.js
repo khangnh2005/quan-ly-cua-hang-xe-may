@@ -31,7 +31,7 @@ function Header() {
       <ul className="nav-links">
         <li><a href="#">Sản phẩm</a></li>
         <li><a href="#">Dịch vụ</a></li>
-        <li><a href="#">Tin tức</a></li>
+        <li><Link to="/news">Tin tức</Link></li>
         <Link to="/about">Về chúng tôi</Link>
       </ul>
       <div className="nav-actions">

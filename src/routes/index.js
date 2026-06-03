@@ -17,6 +17,8 @@ import AdminOrders from "../pages/AdminOrders";
 import AdminCustomers from "../pages/AdminCustomers";
 import AdminSettings from "../pages/AdminSettings";
 import About from "../pages/About";
+import News from "../pages/News";
+import NewsDetail from "../pages/News/NewsDetail";
 
 export const routes = [
     // === CLIENT ROUTES ===
@@ -34,6 +36,12 @@ export const routes = [
             },
             {
                 path :"/about" , element : <About />
+            },
+            {
+                path :"/news" , element : <News />
+            },
+            {
+                path :"/news/:id" , element : <NewsDetail />
             }
         ]
     },
