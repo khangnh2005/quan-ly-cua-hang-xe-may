@@ -17,25 +17,56 @@ const DEMO_ADMIN = {
 };
 
 // Helper: extract token từ response của API admin
-// Cấu trúc trả về: { message, user: { token, tenDangNhap, hoTen, vaiTro: { tenVaiTro }, ... } }
+// Hỗ trợ nhiều cấu trúc response khác nhau:
+// - { user: { token, ... } }
+// - { data: { token, user: {...} } }
+// - { token: "..." }
+// - { data: { token: "..." } }
 function extractToken(response) {
   if (!response) return null;
-  const user = response.user || {};
-  return (
-    user.token ||
-    user.accessToken ||
-    user.jwt ||
-    response.token ||
-    response.accessToken ||
-    response.jwt ||
-    null
-  );
+  
+  // Log toàn bộ response để debug
+  console.log('extractToken - response:', JSON.stringify(response, null, 2));
+  
+  // 1. user.token
+  if (response.user) {
+    if (response.user.token) return response.user.token;
+    if (response.user.accessToken) return response.user.accessToken;
+    if (response.user.jwt) return response.user.jwt;
+  }
+  
+  // 2. data.token hoặc data.accessToken
+  if (response.data) {
+    if (response.data.token) return response.data.token;
+    if (response.data.accessToken) return response.data.accessToken;
+    if (response.data.jwt) return response.data.jwt;
+  }
+  
+  // 3. response trực tiếp
+  if (response.token) return response.token;
+  if (response.accessToken) return response.accessToken;
+  if (response.jwt) return response.jwt;
+  
+  // 4. data chứa user với token
+  if (response.data?.user?.token) return response.data.user.token;
+  
+  return null;
 }
 
 // Helper: extract thông tin user
 function extractUser(response) {
   if (!response) return null;
-  return response.user || null;
+  
+  // 1. response.user
+  if (response.user) return response.user;
+  
+  // 2. response.data.user
+  if (response.data?.user) return response.data.user;
+  
+  // 3. response.data (nếu là object có tenDangNhap)
+  if (response.data && typeof response.data === 'object' && response.data.tenDangNhap) return response.data;
+  
+  return null;
 }
 
 function AdminLogin() {
@@ -76,6 +107,25 @@ function AdminLogin() {
     localStorage.setItem('adminInfo', JSON.stringify(user));
   };
 
+// Helper: kiểm tra response đăng nhập có thành công không
+function isSignInSuccess(response) {
+  if (!response) return false;
+  
+  // Có user object
+  if (response.user) return true;
+  if (response.data?.user) return true;
+  
+  // Có token
+  if (response.token || response.accessToken || response.jwt) return true;
+  if (response.data?.token || response.data?.accessToken) return true;
+  
+  // Message success
+  const msg = (response.message || '').toLowerCase();
+  if (msg.includes('success') || msg.includes('thành công')) return true;
+  
+  return false;
+}
+
   // Gọi API admin thật để đăng nhập
   const callAdminSignIn = async (tenDangNhap, matKhau) => {
     const response = await post('admin/auth/sign-in', {
@@ -93,7 +143,7 @@ function AdminLogin() {
       // Gọi API admin thật với tài khoản demo
       const response = await callAdminSignIn(DEMO_ADMIN.tenDangNhap, DEMO_ADMIN.matKhau);
 
-      if (response && (response.message === 'Sign-in successful' || response.user)) {
+      if (response && isSignInSuccess(response)) {
         const user = extractUser(response);
         const token = extractToken(response);
 
@@ -134,7 +184,7 @@ function AdminLogin() {
       // Gọi API admin thật với thông tin user nhập vào
       const response = await callAdminSignIn(formData.tenDangNhap, formData.matKhau);
 
-      if (response && (response.message === 'Sign-in successful' || response.user)) {
+      if (response && isSignInSuccess(response)) {
         const user = extractUser(response);
         const token = extractToken(response);
 

@@ -36,9 +36,9 @@ export const post = async(path , data) =>{
         body: JSON.stringify(data)
     });
     const result = await response.json();
-    if (!response.ok) {
-        throw new Error(result.message || 'Lỗi server!');
-    }
+    // Attach status code to result for reference
+    result._status = response.status;
+    result._ok = response.ok;
     return result;
 }
 

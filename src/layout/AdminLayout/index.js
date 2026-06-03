@@ -12,7 +12,7 @@ const menuItems = [
   { path: '/admin/vehicles', icon: 'fa-motorcycle', label: 'Sản phẩm' ,
     children: [
       { path: '/admin/vehicles', label: 'Danh sách xe' },
-      { path: '/admin/vehicle-models', label: 'Dòng xe' },
+      { path: '/admin/vehicle-models', label: 'Hãng xe' },
       { path: '/admin/vehicle-categories', label: 'Loại xe' },
     ]
    },
