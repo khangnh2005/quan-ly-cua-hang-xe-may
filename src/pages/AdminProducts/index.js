@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { message, Modal } from 'antd';
 import { del, get, post, patch, uploadFile } from '../../untils/requests';
 import '../../css/admin.scss';
+import '../../css/style.scss';
 
 // === OPTIONS KHỚP VỚI DATABASE ===
 const STATUS_OPTIONS = [
@@ -35,6 +36,8 @@ const [editingId, setEditingId] = useState(null);
   const [uploadingImg, setUploadingImg] = useState(false);
   const [uploadedImgUrl, setUploadedImgUrl] = useState(null);
   const fileInputRef = useRef(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
 
   useEffect(() => {
     fetchProducts();
@@ -255,6 +258,32 @@ const [editingId, setEditingId] = useState(null);
     return product?.hinhAnh || DEFAULT_IMAGE;
   };
 
+  // Pagination
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const paginatedProducts = filteredProducts.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(totalPages, start + maxVisible - 1);
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
   const handleDelete = (id) => {
     Modal.confirm({
       title: 'Bạn có chắc chắn muốn xóa sản phẩm này?',
@@ -287,7 +316,7 @@ const [editingId, setEditingId] = useState(null);
               type="text"
               placeholder="Tìm kiếm sản phẩm..."
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
             />
           </div>
         </div>
@@ -327,9 +356,9 @@ const [editingId, setEditingId] = useState(null);
                     </td>
                   </tr>
                 ) : (
-                  filteredProducts.map((product, idx) => (
+                  paginatedProducts.map((product, idx) => (
                     <tr key={product._id || idx}>
-                      <td>{idx + 1}</td>
+                      <td>{(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}</td>
                       <td>
                         <div className="product-thumb">
                           <img src={getImageUrl(product)} alt={product.dongXe?.tenDongXe} />
@@ -365,6 +394,49 @@ const [editingId, setEditingId] = useState(null);
           )}
         </div>
       </div>
+
+      {/* PHÂN TRANG */}
+      {totalPages > 1 && (
+        <div className="admin-pagination">
+          <div className="pagination">
+            <button
+              className="page-btn"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+            >
+              <i className="fa-solid fa-chevron-left"></i>
+            </button>
+            {currentPage > 3 && totalPages > 5 && (
+              <>
+                <button className="page-number" onClick={() => setCurrentPage(1)}>1</button>
+                <span className="page-dots">...</span>
+              </>
+            )}
+            {getPageNumbers().map(page => (
+              <button
+                key={page}
+                className={`page-number ${currentPage === page ? 'active' : ''}`}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </button>
+            ))}
+            {currentPage < totalPages - 2 && totalPages > 5 && (
+              <>
+                <span className="page-dots">...</span>
+                <button className="page-number" onClick={() => setCurrentPage(totalPages)}>{totalPages}</button>
+              </>
+            )}
+            <button
+              className="page-btn"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+            >
+              <i className="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Add/Edit Product Modal */}
       {showModal && (

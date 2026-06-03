@@ -2,7 +2,7 @@ import { getCookie , setCookie } from '../../helpers/cookie';
 import '../../css/style.scss';
 import { useState, useEffect } from 'react';
 import { message } from 'antd';
-import { post, uploadFile } from '../../untils/requests';
+import { post, uploadFile, get } from '../../untils/requests';
 import { Button, Space } from 'antd';
 
 // Helper để lưu/đọc avatar ở localStorage (không bị xóa khi logout)
@@ -14,6 +14,21 @@ function saveAvatarToLocal(avatarUrl) {
   if (avatarUrl) localStorage.setItem(LS_AVATAR_KEY, avatarUrl);
 }
 
+// Status map giống AdminOrders
+const statusMap = {
+  DaThanhToan: { label: 'Đã thanh toán', class: 'success' },
+  ChoXuLy: { label: 'Chờ xử lý', class: 'info' },
+  DangXuLy: { label: 'Đang xử lý', class: 'warning' },
+  DaHuy: { label: 'Đã hủy', class: 'danger' },
+};
+
+const statusVnMap = {
+  'Đã thanh toán': 'DaThanhToan',
+  'Chờ xử lý': 'ChoXuLy',
+  'Đang xử lý': 'DangXuLy',
+  'Đã hủy': 'DaHuy',
+};
+
 function Profile() {
   const savedAvatar = getSavedAvatar();
   const [avatarUrl, setAvatarUrl] = useState(savedAvatar || 'https://upload.wikimedia.org/wikipedia/commons/0/09/Icon_Google_Material_Design_Account_circle.svg');
@@ -22,6 +37,7 @@ function Profile() {
   const [updateResult, setUpdateResult] = useState(null);
   const getAvatarFromData = (obj) => obj?.avatar || obj?.avatarPath || '';
   const fullNameFromCookie = getCookie('fullName') || getCookie('hoTen') || '';
+  const userId = getCookie('userId') || '';
   const user = {
     hoTen: fullNameFromCookie,
     fullName: fullNameFromCookie,
@@ -31,7 +47,7 @@ function Profile() {
     cccd: getCookie('cccd') || '',
     avatar: getCookie('avatar') || getCookie('avatarPath') || getSavedAvatar(),
     trangThai: getCookie('trangThai') === 'true',
-    userId: getCookie('userId') || '',
+    userId: userId,
   };
 
   const [showModal, setShowModal] = useState(false);
@@ -44,6 +60,14 @@ function Profile() {
       diaChi: getCookie('address') || getCookie('diaChi') || '',
       avatar: getCookie('avatar') || getCookie('avatarPath') || getSavedAvatar(),
   });
+
+  // State cho tab & lịch sử mua hàng
+  const [activeTab, setActiveTab] = useState('profile');
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersFetched, setOrdersFetched] = useState(false);
+  const [selectedOrder, setSelectedOrder] = useState(null);
+  const [showDetailModal, setShowDetailModal] = useState(false);
 
   // Khôi phục avatar từ localStorage khi mount (tồn tại qua logout)
   useEffect(() => {
@@ -192,6 +216,288 @@ function Profile() {
   // Lấy thông tin hiển thị: ưu tiên data từ response update, fallback về cookie (user)
   const data = updateResult || userData || user;
 
+  // ===== XỬ LÝ LỊCH SỬ MUA HÀNG =====
+  const fetchOrders = async () => {
+    if (ordersFetched) return;
+    setOrdersLoading(true);
+    try {
+      const res = await get('orders');
+      console.log('Profile - Orders API response:', res);
+      const list = Array.isArray(res) ? res : (res?.data || []);
+      // Lọc đơn hàng theo userId hiện tại
+      const myOrders = list.filter(o => {
+        const khId = o.khachHang?._id || o.khachHang?.id || '';
+        return khId === userId;
+      });
+      setOrders(myOrders);
+      setOrdersFetched(true);
+    } catch (err) {
+      console.error('Fetch orders error:', err);
+      message.error('Không thể tải lịch sử mua hàng');
+    } finally {
+      setOrdersLoading(false);
+    }
+  };
+
+  const handleTabClick = (tab) => {
+    setActiveTab(tab);
+    if (tab === 'orders' && !ordersFetched) {
+      fetchOrders();
+    }
+  };
+
+  const handleViewOrderDetail = (order) => {
+    setSelectedOrder(order);
+    setShowDetailModal(true);
+  };
+
+  const handleCloseDetail = () => {
+    setShowDetailModal(false);
+    setSelectedOrder(null);
+  };
+
+  const formatPrice = (price) => (price || 0).toLocaleString('vi-VN') + '₫';
+
+  const formatDate = (dateStr) => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+      });
+    } catch (e) { return ''; }
+  };
+
+  const formatDateTime = (dateStr) => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    } catch (e) { return ''; }
+  };
+
+  const normalizeStatus = (status) => {
+    if (!status) return status;
+    if (statusVnMap[status]) return statusVnMap[status];
+    if (statusMap[status]) return status;
+    const found = Object.keys(statusMap).find(
+      (k) => k.toLowerCase() === status?.toLowerCase()
+    );
+    return found || status;
+  };
+
+  const getDisplayStatus = (status) => {
+    const key = normalizeStatus(status);
+    return statusMap[key] || { label: status || 'Không xác định', class: 'default' };
+  };
+
+  const getPaymentMethod = (order) => {
+    if (order.trangThaiDonHang === 'DaThanhToan' || order.trangThaiDonHang === 'Đã thanh toán') {
+      return 'Chuyển khoản';
+    }
+    return 'Chưa thanh toán';
+  };
+
+  // Render chi tiết đơn hàng (modal)
+  const renderOrderDetailModal = () => {
+    if (!selectedOrder) return null;
+    const order = selectedOrder;
+    const xe = order?.chiTiet?.xe || {};
+    const dongXe = xe?.dongXe || {};
+    const loaiXe = dongXe?.loaiXe || {};
+    const displayStatus = getDisplayStatus(order.trangThaiDonHang);
+
+    return (
+      <div className="modal-overlay" onClick={handleCloseDetail}>
+        <div className="modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '700px' }}>
+          <div className="modal-header">
+            <h3>
+              <i className="fa-solid fa-receipt"></i> Chi tiết đơn hàng
+              <span style={{ fontSize: '14px', marginLeft: '10px', fontWeight: 'normal', color: '#666' }}>
+                #{order._id ? order._id.slice(-6).toUpperCase() : ''}
+              </span>
+            </h3>
+            <button className="modal-close" onClick={handleCloseDetail}>
+              <i className="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div className="modal-body">
+            {/* Thông tin đơn hàng */}
+            <div className="modal-section">
+              <h4 className="section-label"><i className="fa-solid fa-circle-info"></i> Thông tin đơn hàng</h4>
+              <div className="detail-grid">
+                <div className="detail-row">
+                  <span className="detail-label">Mã đơn hàng:</span>
+                  <span className="detail-value">#{order._id ? order._id.slice(-6).toUpperCase() : ''}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Ngày đặt:</span>
+                  <span className="detail-value">{formatDateTime(order.ngayDat)}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Tổng tiền:</span>
+                  <span className="detail-value" style={{ color: '#e74c3c', fontWeight: 'bold', fontSize: '16px' }}>
+                    {formatPrice(order.tongTien)}
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Trạng thái:</span>
+                  <span className="detail-value">
+                    <span className={`status-badge ${displayStatus.class}`}>{displayStatus.label}</span>
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Thanh toán:</span>
+                  <span className="detail-value">{getPaymentMethod(order)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Thông tin sản phẩm đã mua */}
+            <div className="modal-section">
+              <h4 className="section-label"><i className="fa-solid fa-motorcycle"></i> Sản phẩm đã mua</h4>
+              <div className="detail-grid">
+                <div className="detail-row">
+                  <span className="detail-label">Dòng xe:</span>
+                  <span className="detail-value">{dongXe.tenDongXe || ''}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Loại xe:</span>
+                  <span className="detail-value">{loaiXe.tenLoaiXe || ''}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Màu sắc:</span>
+                  <span className="detail-value">{xe.mauSac || ''}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Năm sản xuất:</span>
+                  <span className="detail-value">{xe.namSanXuat || ''}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Số khung:</span>
+                  <span className="detail-value" style={{ fontFamily: 'monospace' }}>{xe.soKhung || ''}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Số máy:</span>
+                  <span className="detail-value" style={{ fontFamily: 'monospace' }}>{xe.soMay || ''}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Giá bán:</span>
+                  <span className="detail-value" style={{ color: '#e74c3c', fontWeight: 'bold' }}>
+                    {formatPrice(order.chiTiet?.giaBan)}
+                  </span>
+                </div>
+              </div>
+              {xe.hinhAnh && xe.hinhAnh.length > 0 && xe.hinhAnh[0] && xe.hinhAnh[0].trim() && (
+                <div style={{ marginTop: '12px' }}>
+                  <img
+                    src={xe.hinhAnh[0]}
+                    alt={dongXe.tenDongXe || 'xe'}
+                    style={{ maxWidth: '100%', maxHeight: '200px', borderRadius: '8px', objectFit: 'cover' }}
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button type="button" className="profile-btn-secondary" onClick={handleCloseDetail}>
+              <i className="fa-solid fa-xmark"></i> Đóng
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  // Render danh sách đơn hàng
+  const renderOrderHistory = () => {
+    return (
+      <div className="profile-order-history">
+        <h2 className="profile-title">Lịch sử mua hàng</h2>
+        <p className="profile-subtitle">Theo dõi tình trạng đơn hàng của bạn</p>
+
+        {ordersLoading ? (
+          <div className="profile-orders-loading">
+            <i className="fa fa-spinner fa-spin"></i> Đang tải...
+          </div>
+        ) : orders.length === 0 ? (
+          <div className="profile-orders-empty">
+            <i className="fa-solid fa-box-open"></i>
+            <h3>Bạn chưa có đơn hàng nào</h3>
+            <p>Khi bạn đặt mua xe, đơn hàng sẽ xuất hiện ở đây</p>
+          </div>
+        ) : (
+          <div className="profile-orders-list">
+            {orders.map((order, idx) => {
+              const displayStatus = getDisplayStatus(order.trangThaiDonHang);
+              const xe = order?.chiTiet?.xe || {};
+              const dongXe = xe?.dongXe || {};
+              return (
+                <div key={order._id || idx} className="profile-order-card">
+                  <div className="profile-order-card-left">
+                    {xe.hinhAnh && xe.hinhAnh.length > 0 && xe.hinhAnh[0] && xe.hinhAnh[0].trim() ? (
+                      <img
+                        src={xe.hinhAnh[0]}
+                        alt={dongXe.tenDongXe || 'xe'}
+                        className="profile-order-img"
+                        onError={(e) => { e.target.style.display = 'none'; }}
+                      />
+                    ) : (
+                      <div className="profile-order-img-placeholder">
+                        <i className="fa-solid fa-motorcycle"></i>
+                      </div>
+                    )}
+                  </div>
+                  <div className="profile-order-card-body">
+                    <div className="profile-order-card-header">
+                      <div className="profile-order-id">
+                        <i className="fa-solid fa-receipt"></i> #{order._id ? order._id.slice(-6).toUpperCase() : ''}
+                      </div>
+                      <span className={`status-badge ${displayStatus.class}`}>
+                        {displayStatus.label}
+                      </span>
+                    </div>
+                    <div className="profile-order-product">
+                      <strong>{dongXe.tenDongXe || 'Không xác định'}</strong>
+                      {xe.mauSac && <span> - {xe.mauSac}</span>}
+                    </div>
+                    <div className="profile-order-meta">
+                      <span className="profile-order-date">
+                        <i className="fa-regular fa-calendar"></i> {formatDate(order.ngayDat)}
+                      </span>
+                      <span className="profile-order-total">
+                        Tổng: <strong>{formatPrice(order.tongTien)}</strong>
+                      </span>
+                    </div>
+                  </div>
+                  <div className="profile-order-card-action">
+                    <button
+                      className="profile-btn-view"
+                      onClick={() => handleViewOrderDetail(order)}
+                      title="Xem chi tiết"
+                    >
+                      <i className="fa-solid fa-eye"></i>
+                      <span>Chi tiết</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
     <div className="profile-page">
       <div className="profile-container">
@@ -227,53 +533,67 @@ function Profile() {
             )}
           </div>
           <ul className="profile-menu">
-            <li className="profile-menu-item active">
+            <li
+              className={`profile-menu-item ${activeTab === 'profile' ? 'active' : ''}`}
+              onClick={() => handleTabClick('profile')}
+            >
               <i className="fa-solid fa-user"></i>
               <span>Hồ sơ của tôi</span>
             </li>
-            <li className="profile-menu-item">
+            <li
+              className={`profile-menu-item ${activeTab === 'orders' ? 'active' : ''}`}
+              onClick={() => handleTabClick('orders')}
+            >
               <i className="fa-solid fa-box"></i>
               <span>Lịch sử mua hàng</span>
             </li>
           </ul>
         </div>
 
-        {/* Main Content - Render từ data (response API hoặc cookie) */}
+        {/* Main Content */}
         <div className="profile-main">
-          <h2 className="profile-title">Thông tin cá nhân</h2>
-          <p className="profile-subtitle">
-            Quản lý thông tin cá nhân để bảo mật tài khoản của bạn
-          </p>
+          {activeTab === 'profile' && (
+            <>
+              <h2 className="profile-title">Thông tin cá nhân</h2>
+              <p className="profile-subtitle">
+                Quản lý thông tin cá nhân để bảo mật tài khoản của bạn
+              </p>
 
-          <div className="profile-info-grid">
-            <div className="profile-info-item">
-              <label>Họ và tên</label>
-              <p>{data.fullName || data.hoTen || 'Chưa cập nhật'}</p>
-            </div>
-            <div className="profile-info-item">
-              <label>Email</label>
-              <p>{data.email || 'Chưa cập nhật'}</p>
-            </div>
-            <div className="profile-info-item">
-              <label>Số điện thoại</label>
-              <p>{data.phoneNumber || data.soDienThoai || 'Chưa cập nhật'}</p>
-            </div>
-            <div className="profile-info-item">
-              <label>CCCD</label>
-              <p>{data.cccd || 'Chưa cập nhật'}</p>
-            </div>
-          </div>
+              <div className="profile-info-grid">
+                <div className="profile-info-item">
+                  <label>Họ và tên</label>
+                  <p>{data.fullName || data.hoTen || 'Chưa cập nhật'}</p>
+                </div>
+                <div className="profile-info-item">
+                  <label>Email</label>
+                  <p>{data.email || 'Chưa cập nhật'}</p>
+                </div>
+                <div className="profile-info-item">
+                  <label>Số điện thoại</label>
+                  <p>{data.phoneNumber || data.soDienThoai || 'Chưa cập nhật'}</p>
+                </div>
+                <div className="profile-info-item">
+                  <label>CCCD</label>
+                  <p>{data.cccd || 'Chưa cập nhật'}</p>
+                </div>
+              </div>
 
-          <div className="profile-info-item" style={{ marginBottom: '20px' }}>
-            <label>Địa chỉ</label>
-            <p>{data.address || data.diaChi || 'Chưa cập nhật'}</p>
-          </div>
+              <div className="profile-info-item" style={{ marginBottom: '20px' }}>
+                <label>Địa chỉ</label>
+                <p>{data.address || data.diaChi || 'Chưa cập nhật'}</p>
+              </div>
 
-          <button className="profile-btn-edit" onClick={handleOpenEdit}>
-            <i className="fa-solid fa-pen"></i> Chỉnh sửa hồ sơ
-          </button>
+              <button className="profile-btn-edit" onClick={handleOpenEdit}>
+                <i className="fa-solid fa-pen"></i> Chỉnh sửa hồ sơ
+              </button>
+            </>
+          )}
+
+          {activeTab === 'orders' && renderOrderHistory()}
         </div>
       </div>
+
+      {/* Modal chỉnh sửa hồ sơ */}
       {showModal && (
   <div className="modal-overlay">
     <div className="modal-container">
@@ -343,6 +663,9 @@ function Profile() {
     </div>
   </div>
 )}
+
+      {/* Modal chi tiết đơn hàng */}
+      {showDetailModal && renderOrderDetailModal()}
     </div>
   );
 }

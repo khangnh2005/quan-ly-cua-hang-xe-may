@@ -671,6 +671,27 @@ $radius-sm: 8px;
 }
 
 // ===== DASHBOARD =====
+.stat-card-link {
+  text-decoration: none;
+  color: inherit;
+  display: block;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-radius: $radius;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: $shadow-md;
+
+    .stat-card {
+      border-color: var(--card-color, $admin-primary);
+    }
+  }
+
+  &:active {
+    transform: translateY(-2px);
+  }
+}
+
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -1640,17 +1661,6 @@ $radius-sm: 8px;
     border-color: $admin-primary;
     background: #f0f2ff;
   }
-
-  i {
-    font-size: 32px;
-    color: #ccc;
-  }
-
-  p {
-    margin-top: 8px;
-    color: #999;
-    font-size: 13px;
-  }
 }
 
 .btn-upload-image {
@@ -1739,7 +1749,7 @@ $radius-sm: 8px;
 
 /* Sidebar chính */
 .admin-sidebar {
-  background: #1a1c24; // Màu nền tối sang trọng
+  background: #1a1c24;
   color: #fff;
   width: 260px;
   transition: all 0.3s ease;
@@ -1756,14 +1766,14 @@ $radius-sm: 8px;
 
     &:hover, &.active {
       background: #252836;
-      color: #6366f1; // Màu nhấn xanh tím
+      color: #6366f1;
       border-left: 4px solid #6366f1;
     }
   }
 
   /* Sub-menu (Dòng xe, Loại xe...) */
   .sub-menu {
-    background: #15171d; // Màu tối hơn một chút cho submenu
+    background: #15171d;
     padding-left: 20px;
 
     .sub-nav-item {
@@ -1784,4 +1794,176 @@ $radius-sm: 8px;
 .fa-chevron-down, .fa-chevron-right {
   margin-left: auto;
   font-size: 12px;
+}
+
+// ===== PERMISSIONS PAGE =====
+.admin-permissions {
+  .permission-list {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .permission-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 14px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+
+    i {
+      font-size: 10px;
+    }
+
+    &.success {
+      background: #d4ffed;
+      color: #06a77a;
+    }
+
+    &.warning {
+      background: #fff3e0;
+      color: #e67e22;
+    }
+
+    &.danger {
+      background: #ffe0e3;
+      color: #e63946;
+    }
+  }
+
+  .role-badge {
+    display: inline-flex;
+    padding: 3px 12px;
+    border-radius: 14px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #eef0ff;
+    color: $admin-primary;
+  }
+
+  .text-muted {
+    color: $admin-text-light;
+    font-size: 12px;
+    font-style: italic;
+  }
+
+  .permission-checkboxes {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 8px;
+
+    .checkbox-label {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1.5px solid $admin-border;
+      transition: all 0.2s;
+      user-select: none;
+
+      &:hover {
+        border-color: $admin-primary;
+        background: #f8f9ff;
+      }
+
+      input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: $admin-primary;
+        cursor: pointer;
+        flex-shrink: 0;
+      }
+
+      .checkbox-custom {
+        font-size: 14px;
+        font-weight: 500;
+        color: $admin-text;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        i {
+          font-size: 16px;
+          color: $admin-primary;
+        }
+      }
+    }
+  }
+}
+
+// ===== ADMIN PAGINATION =====
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+
+  .pagination-info {
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
+  }
+
+  .pagination {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin: 0;
+    padding: 0;
+
+    .page-btn,
+    .page-number {
+      border: 1px solid #ddd;
+      background: #fff;
+      color: #333;
+      font-size: 13px;
+      font-weight: 600;
+      padding: 7px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 36px;
+      gap: 4px;
+
+      &:hover:not(:disabled) {
+        background: #fff0f0;
+        border-color: #ed1c24;
+        color: #ed1c24;
+      }
+
+      &:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+    }
+
+    .page-number.active {
+      background: #ed1c24;
+      color: #fff;
+      border-color: #ed1c24;
+
+      &:hover {
+        background: #cc0000;
+        color: #fff;
+      }
+    }
+
+    .page-dots {
+      color: #999;
+      font-size: 13px;
+      padding: 0 2px;
+      letter-spacing: 2px;
+    }
+  }
 }

@@ -24,6 +24,8 @@ function AdminVehicleModels() {
   const [searchTerm, setSearchTerm] = useState('');
   const [vehicleCategories, setVehicleCategories] = useState([]);
   const [editingId, setEditingId] = useState(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 5;
 
   useEffect(() => {
     fetchVehicleModels();
@@ -179,6 +181,31 @@ function AdminVehicleModels() {
     return loaiXe?.tenLoaiXe || '-';
   };
 
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const totalPages = Math.ceil(filteredVehicleModels.length / ITEMS_PER_PAGE);
+  const paginatedModels = filteredVehicleModels.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(totalPages, start + maxVisible - 1);
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
+
   const handleDelete = (id) => {
     Modal.confirm({
       title: 'Bạn có chắc chắn muốn xóa hãng xe này?',
@@ -213,7 +240,7 @@ function AdminVehicleModels() {
               type="text"
               placeholder="Tìm kiếm hãng xe..."
               value={searchTerm}
-              onChange={e => setSearchTerm(e.target.value)}
+              onChange={handleSearchChange}
             />
           </div>
         </div>
@@ -252,9 +279,9 @@ function AdminVehicleModels() {
                     </td>
                   </tr>
                 ) : (
-                  filteredVehicleModels.map((vm, idx) => (
+                  paginatedModels.map((vm, idx) => (
                     <tr key={vm._id || idx}>
-                      <td>{idx + 1}</td>
+                      <td>{(currentPage - 1) * ITEMS_PER_PAGE + idx + 1}</td>
                       <td><span className="product-name">{vm.tenDongXe || '-'}</span></td>
                       <td>{getCategoryName(vm.loaiXe)}</td>
                       <td className="price-col">{formatPrice(vm.giaNiemYet)}</td>
@@ -291,6 +318,49 @@ function AdminVehicleModels() {
           )}
         </div>
       </div>
+
+      {/* PHÂN TRANG */}
+      {totalPages > 1 && (
+        <div className="admin-pagination">
+          <div className="pagination">
+            <button
+              className="page-btn"
+              disabled={currentPage === 1}
+              onClick={() => setCurrentPage(currentPage - 1)}
+            >
+              <i className="fa-solid fa-chevron-left"></i>
+            </button>
+            {currentPage > 3 && totalPages > 5 && (
+              <>
+                <button className="page-number" onClick={() => setCurrentPage(1)}>1</button>
+                <span className="page-dots">...</span>
+              </>
+            )}
+            {getPageNumbers().map(page => (
+              <button
+                key={page}
+                className={`page-number ${currentPage === page ? 'active' : ''}`}
+                onClick={() => setCurrentPage(page)}
+              >
+                {page}
+              </button>
+            ))}
+            {currentPage < totalPages - 2 && totalPages > 5 && (
+              <>
+                <span className="page-dots">...</span>
+                <button className="page-number" onClick={() => setCurrentPage(totalPages)}>{totalPages}</button>
+              </>
+            )}
+            <button
+              className="page-btn"
+              disabled={currentPage === totalPages}
+              onClick={() => setCurrentPage(currentPage + 1)}
+            >
+              <i className="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Add/Edit Vehicle Model Modal */}
       {showModal && (

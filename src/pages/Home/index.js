@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { get } from '../../untils/requests';
 
 function formatPrice(price) {
@@ -22,6 +22,7 @@ function getVehicleImage(vehicle) {
 }
 
 function Home() {
+  const location = useLocation();
   const [vehicles, setVehicles] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -31,6 +32,21 @@ function Home() {
   const [activeModels, setActiveModels] = useState([]);
   const [activePrice, setActivePrice] = useState('all');
   const [activeCategory, setActiveCategory] = useState('Tất Cả');
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 9;
+
+  // Scroll to products section when navigating from another page via "Sản phẩm" button
+  useEffect(() => {
+    if (location.state?.scrollToProducts) {
+      const timer = setTimeout(() => {
+        const section = document.getElementById('search-section');
+        if (section) section.scrollIntoView({ behavior: 'smooth' });
+        // Clear state to prevent re-scrolling on re-renders
+        window.history.replaceState({}, document.title);
+      }, 400);
+      return () => clearTimeout(timer);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const fetchVehicles = async () => {
@@ -76,6 +92,7 @@ function Home() {
     } else {
       setActiveBrands(prev => prev.filter(b => b !== brand));
     }
+    setCurrentPage(1);
   }
 
   function handleModelChange(model, checked) {
@@ -84,14 +101,17 @@ function Home() {
     } else {
       setActiveModels(prev => prev.filter(m => m !== model));
     }
+    setCurrentPage(1);
   }
 
   function handlePriceChange(value) {
     setActivePrice(value);
+    setCurrentPage(1);
   }
 
   function handleSearch() {
     setCurrentKeyword(searchValue.toLowerCase().trim());
+    setCurrentPage(1);
   }
 
   function handleCategoryClick(category) {
@@ -101,6 +121,7 @@ function Home() {
     } else {
       setActiveBrands([category]);
     }
+    setCurrentPage(1);
   }
 
   function matchesPrice(price) {
@@ -125,6 +146,27 @@ function Home() {
     const matchKeyword = currentKeyword === '' || searchText.includes(currentKeyword);
     return matchBrand && matchModel && matchPrice && matchKeyword;
   });
+
+  // Pagination
+  const totalPages = Math.ceil(filteredVehicles.length / ITEMS_PER_PAGE);
+  const paginatedVehicles = filteredVehicles.slice(
+    (currentPage - 1) * ITEMS_PER_PAGE,
+    currentPage * ITEMS_PER_PAGE
+  );
+
+  const getPageNumbers = () => {
+    const pages = [];
+    const maxVisible = 5;
+    let start = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+    let end = Math.min(totalPages, start + maxVisible - 1);
+    if (end - start + 1 < maxVisible) {
+      start = Math.max(1, end - maxVisible + 1);
+    }
+    for (let i = start; i <= end; i++) {
+      pages.push(i);
+    }
+    return pages;
+  };
 
   if (loading) {
     return (
@@ -325,7 +367,7 @@ function Home() {
             </h2>
             <div className="product-search-grid" id="productGrid">
               {filteredVehicles.length > 0 ? (
-                filteredVehicles.map(vehicle => (
+                paginatedVehicles.map(vehicle => (
                   <Link to={`/product/detail/${vehicle._id}`} className="product-item" key={vehicle._id} style={{ textDecoration: 'none' }}>
                     <img
                       src={getVehicleImage(vehicle)}
@@ -349,6 +391,47 @@ function Home() {
                 <div className="no-result">Không tìm thấy sản phẩm phù hợp.</div>
               )}
             </div>
+
+            {/* PHÂN TRANG */}
+            {totalPages > 1 && (
+              <div className="pagination">
+                <button
+                  className="page-btn"
+                  disabled={currentPage === 1}
+                  onClick={() => setCurrentPage(currentPage - 1)}
+                >
+                  <i className="fa-solid fa-chevron-left"></i>
+                </button>
+                {currentPage > 3 && totalPages > 5 && (
+                  <>
+                    <button className="page-number" onClick={() => setCurrentPage(1)}>1</button>
+                    <span className="page-dots">...</span>
+                  </>
+                )}
+                {getPageNumbers().map(page => (
+                  <button
+                    key={page}
+                    className={`page-number ${currentPage === page ? 'active' : ''}`}
+                    onClick={() => setCurrentPage(page)}
+                  >
+                    {page}
+                  </button>
+                ))}
+                {currentPage < totalPages - 2 && totalPages > 5 && (
+                  <>
+                    <span className="page-dots">...</span>
+                    <button className="page-number" onClick={() => setCurrentPage(totalPages)}>{totalPages}</button>
+                  </>
+                )}
+                <button
+                  className="page-btn"
+                  disabled={currentPage === totalPages}
+                  onClick={() => setCurrentPage(currentPage + 1)}
+                >
+                  <i className="fa-solid fa-chevron-right"></i>
+                </button>
+              </div>
+            )}
           </section>
         </div>
       </section>

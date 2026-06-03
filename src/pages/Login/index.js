@@ -41,14 +41,23 @@ function Login() {
         // Save token & user info to cookie
         // rememberMe=true: 30-day persistent cookie, rememberMe=false: session cookie (expires when browser closes)
         const days = formData.rememberMe ? 30 : 0;
-        // Token usually embedded in response.user
-        const token = response.user?.token || response.user?.accessToken || response.token || response.accessToken || response.data?.token;
+        // Log để debug cấu trúc response
+        console.log('Login response:', response);
+        console.log('Response user:', response.user);
+
+        // Lưu token vào cookie (backend yêu cầu token để xác thực)
+        // Token này do auth/sign-in trả về, backend sẽ tự verify
+        const token = user.token || '';
         if (token) {
           setCookie('token', token, days);
+          console.log('Token saved to cookie:', token);
         }
-        // save user info
-      
-        setCookie('userId', user.id, days);
+        
+        // userId có thể là _id hoặc id
+        const userId = user.id || user._id || user.userId || '';
+        setCookie('userId', userId, days);
+        
+        console.log('Customer login - userId:', userId);
         setCookie('fullName', user.fullName, days);
         setCookie('email', user.email, days);
         setCookie('phoneNumber', user.phoneNumber || '', days);
@@ -58,8 +67,8 @@ function Login() {
         if (user?.avatar) {
           setCookie('avatar', user.avatar, days);
         }
-        // Dispatch login to Redux
-        dispatch(checkLogin(true));
+        // Dispatch login to Redux với userId để ProductDetail có thể lấy được khachHangId
+        dispatch(checkLogin(true, userId));
         
         message.success(`Đăng nhập thành công! Xin chào ${user.fullName}`);
         navigate('/');

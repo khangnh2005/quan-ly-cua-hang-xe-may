@@ -16,6 +16,7 @@ import AdminVehicleCategories from "../pages/AdminVehicleCategories";
 import AdminOrders from "../pages/AdminOrders";
 import AdminCustomers from "../pages/AdminCustomers";
 import AdminSettings from "../pages/AdminSettings";
+import AdminPermissions from "../pages/AdminPermissions";
 import About from "../pages/About";
 import News from "../pages/News";
 import NewsDetail from "../pages/News/NewsDetail";
@@ -68,6 +69,7 @@ export const routes = [
             { path: "orders", element: <AdminOrders /> },
             { path: "customers", element: <AdminCustomers /> },
             { path: "settings", element: <AdminSettings /> },
+            { path: "permissions", element: <AdminPermissions /> },
         ]
     }
 ]

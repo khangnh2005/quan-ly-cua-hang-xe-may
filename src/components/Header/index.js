@@ -1,15 +1,20 @@
 import { useSelector, useDispatch } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { checkLogin } from '../../actions/checkLogin';
 import { deleteAllCookies, getCookie } from '../../helpers/cookie';
 import { message } from 'antd';
 
 function Header() {
+  const location = useLocation();
   const loginState = useSelector(state => state.loginReducer);
   const isLogin = typeof loginState === 'boolean' ? loginState : loginState?.isLogin;
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const fullName = getCookie('fullName');
+
+  function isActive(path) {
+    return location.pathname === path ? 'active' : '';
+  }
 
   function handleLogout() {
     deleteAllCookies();
@@ -29,10 +34,18 @@ function Header() {
         </div>
       </Link>
       <ul className="nav-links">
-        <li><a href="#">Sản phẩm</a></li>
-        <li><a href="#">Dịch vụ</a></li>
-        <li><Link to="/news">Tin tức</Link></li>
-        <Link to="/about">Về chúng tôi</Link>
+        <li><Link to="/" className={isActive('/')}>Trang chủ</Link></li>
+        <li><a href="#search-section" onClick={e => {
+          e.preventDefault();
+          if (location.pathname === '/') {
+            const section = document.getElementById('search-section');
+            if (section) section.scrollIntoView({ behavior: 'smooth' });
+          } else {
+            navigate('/', { state: { scrollToProducts: true } });
+          }
+        }}>Sản phẩm</a></li>
+        <li><Link to="/news" className={isActive('/news')}>Tin tức</Link></li>
+        <li><Link to="/about" className={isActive('/about')}>Về chúng tôi</Link></li>
       </ul>
       <div className="nav-actions">
         {isLogin ? (

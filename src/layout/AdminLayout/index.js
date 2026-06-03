@@ -18,6 +18,7 @@ const menuItems = [
    },
   { path: '/admin/orders', icon: 'fa-clipboard-list', label: 'Đơn hàng' },
   { path: '/admin/customers', icon: 'fa-users', label: 'Khách hàng' },
+  { path: '/admin/permissions', icon: 'fa-lock', label: 'Phân quyền' },
   { path: '/admin/settings', icon: 'fa-gear', label: 'Cài đặt' },
 ];
 
