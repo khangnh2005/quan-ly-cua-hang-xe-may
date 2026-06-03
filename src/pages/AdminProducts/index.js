@@ -14,6 +14,7 @@ const COLOR_OPTIONS = ['Đen', 'Trắng', 'Đỏ', 'Xanh', 'Bạc', 'Xám', 'Nâ
 const DEFAULT_IMAGE = 'https://cdn.honda.com.vn/motorbikes/November2024/sYTCNfgI5E0JUJ8BCTQ3.png';
 
 const emptyVehicle = {
+  tenXe: '',
   dongXeId: '',
   soKhung: '',
   soMay: '',
@@ -147,6 +148,7 @@ const [editingId, setEditingId] = useState(null);
         ? record.dongXe._id
         : (record.dongXe || '');
       setForm({
+        tenXe: record.tenXe || '',
         dongXeId: dongXeValue,
         soKhung: record.soKhung || '',
         soMay: record.soMay || '',
@@ -200,6 +202,7 @@ const [editingId, setEditingId] = useState(null);
     setSubmitting(true);
     try {
       const payload = {
+        tenXe: form.tenXe.trim(),
         soKhung: form.soKhung.trim(),
         soMay: form.soMay.trim(),
         dongXeId: form.dongXeId,
@@ -234,12 +237,13 @@ const [editingId, setEditingId] = useState(null);
   const filteredProducts = products.filter(p => {
     if (!searchTerm) return true;
     const keyword = searchTerm.toLowerCase();
+    const tenXe = (p.tenXe || '').toLowerCase();
     const name = (p.dongXe?.tenDongXe || '').toLowerCase();
     const brand = (p.dongXe?.loaiXe?.tenLoaiXe || '').toLowerCase();
     const color = (p.mauSac || '').toLowerCase();
     const frame = (p.soKhung || '').toLowerCase();
     const engine = (p.soMay || '').toLowerCase();
-    return name.includes(keyword) || brand.includes(keyword) || color.includes(keyword) || frame.includes(keyword) || engine.includes(keyword);
+    return tenXe.includes(keyword) || name.includes(keyword) || brand.includes(keyword) || color.includes(keyword) || frame.includes(keyword) || engine.includes(keyword);
   });
 
   const getStatusLabel = (val) => {
@@ -341,6 +345,7 @@ const [editingId, setEditingId] = useState(null);
                   <th style={{ width: '50px' }}>STT</th>
                   <th style={{ width: '80px' }}>Ảnh</th>
                   <th>Tên xe</th>
+                  <th>Dòng xe</th>
                   <th>Loại xe</th>
                   <th>Màu sắc</th>
                   <th>Giá niêm yết</th>
@@ -351,7 +356,7 @@ const [editingId, setEditingId] = useState(null);
               <tbody>
                 {filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={8} style={{ textAlign: 'center', padding: '30px', color: '#999' }}>
+                    <td colSpan={9} style={{ textAlign: 'center', padding: '30px', color: '#999' }}>
                       {searchTerm ? 'Không tìm thấy sản phẩm phù hợp' : 'Chưa có sản phẩm nào'}
                     </td>
                   </tr>
@@ -364,7 +369,8 @@ const [editingId, setEditingId] = useState(null);
                           <img src={getImageUrl(product)} alt={product.dongXe?.tenDongXe} />
                         </div>
                       </td>
-                      <td><span className="product-name">{product.dongXe?.tenDongXe || '-'}</span></td>
+                      <td><span className="product-name">{product.tenXe || '-'}</span></td>
+                      <td>{product.dongXe?.tenDongXe || '-'}</td>
                       <td>{product.dongXe?.loaiXe?.tenLoaiXe || '-'}</td>
                       <td>{product.mauSac || '-'}</td>
                       <td className="price-col">{formatPrice(product.dongXe?.giaNiemYet)}</td>
@@ -498,6 +504,18 @@ const [editingId, setEditingId] = useState(null);
 
                   <div className="modal-section">
                     <h4 className="section-label">Thông tin xe</h4>
+
+                    <div className="modal-field">
+                      <label>Tên xe <span className="required">*</span></label>
+                      <input
+                        type="text"
+                        name="tenXe"
+                        value={form.tenXe}
+                        onChange={handleInput}
+                        placeholder="VD: Vision 2024 màu đen"
+                        required
+                      />
+                    </div>
 
                     <div className="modal-field">
                       <label>Số khung <span className="required">*</span></label>
