@@ -1,11 +1,38 @@
 import { useState, useEffect } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { message } from 'antd';
+import { Badge, Popover, Empty, List, Button, message } from 'antd';
+import { BellOutlined, ShoppingOutlined, UserOutlined, DollarOutlined } from '@ant-design/icons';
 import { checkAdminLogin } from '../../actions/checkAdminLogin';
 import { deleteCookie, deleteAllCookies, getCookie } from '../../helpers/cookie';
+import { get } from '../../untils/requests';
 import AdminLogin from '../../pages/AdminLogin';
 import '../../css/admin.scss';
+
+// Map để chuẩn hóa trạng thái đơn hàng (giống AdminOrders)
+const statusMap = {
+  DaThanhToan: { label: 'Đã thanh toán', class: 'success' },
+  ChoXuLy: { label: 'Chờ xử lý', class: 'info' },
+  DangXuLy: { label: 'Đang xử lý', class: 'warning' },
+  DaHuy: { label: 'Đã hủy', class: 'danger' },
+};
+
+const statusVnMap = {
+  'Đã thanh toán': 'DaThanhToan',
+  'Chờ xử lý': 'ChoXuLy',
+  'Đang xử lý': 'DangXuLy',
+  'Đã hủy': 'DaHuy',
+};
+
+const normalizeStatus = (status) => {
+  if (!status) return status;
+  if (statusVnMap[status]) return statusVnMap[status];
+  if (statusMap[status]) return status;
+  const found = Object.keys(statusMap).find(
+    (k) => k.toLowerCase() === String(status).toLowerCase()
+  );
+  return found || status;
+};
 
 // Cấu hình menu theo vai trò
 const roleMenuConfig = {
@@ -86,6 +113,9 @@ function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
+  const [pendingOrders, setPendingOrders] = useState([]);
+  const [notifLoading, setNotifLoading] = useState(false);
+  const [notifPopoverOpen, setNotifPopoverOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -95,6 +125,37 @@ function AdminLayout() {
   const isAdmin = typeof adminState === 'boolean' ? adminState : adminState?.isAdmin;
   const adminToken = getCookie('adminToken');
   const userRole = getCookie('adminRole') || 'Admin';
+
+  // Fetch danh sách đơn hàng chờ xử lý
+  const fetchPendingOrders = async () => {
+    try {
+      setNotifLoading(true);
+      const res = await get('orders');
+      const list = Array.isArray(res) ? res : (res?.data || []);
+      const pending = list.filter(
+        (o) => normalizeStatus(o.trangThaiDonHang) === 'ChoXuLy'
+      );
+      // Sắp xếp theo ngày đặt mới nhất
+      pending.sort((a, b) => new Date(b.ngayDat || 0) - new Date(a.ngayDat || 0));
+      setPendingOrders(pending);
+    } catch (err) {
+      console.error('Fetch pending orders error:', err);
+      setPendingOrders([]);
+    } finally {
+      setNotifLoading(false);
+    }
+  };
+
+  // Lấy danh sách đơn hàng chờ xử lý khi đã đăng nhập
+  useEffect(() => {
+    if (isAdmin || adminToken) {
+      fetchPendingOrders();
+      // Tự động refresh mỗi 60 giây
+      const interval = setInterval(fetchPendingOrders, 60000);
+      return () => clearInterval(interval);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAdmin, adminToken]);
 
   // Lọc menu items dựa trên vai trò
   const menuItems = filterMenuByRole(userRole);
@@ -141,6 +202,142 @@ function AdminLayout() {
     message.success('Đã đăng xuất!');
     // Force navigate to admin login page
     window.location.href = '/admin';
+  };
+
+  // Helper: định dạng giá tiền
+  const formatPrice = (price) => {
+    if (price === null || price === undefined) return '0₫';
+    return Number(price).toLocaleString('vi-VN') + '₫';
+  };
+
+  // Helper: định dạng thời gian
+  const formatTimeAgo = (dateStr) => {
+    if (!dateStr) return '';
+    const diff = Math.floor((Date.now() - new Date(dateStr).getTime()) / 1000);
+    if (diff < 60) return 'Vừa xong';
+    if (diff < 3600) return `${Math.floor(diff / 60)} phút trước`;
+    if (diff < 86400) return `${Math.floor(diff / 3600)} giờ trước`;
+    if (diff < 604800) return `${Math.floor(diff / 86400)} ngày trước`;
+    return new Date(dateStr).toLocaleDateString('vi-VN');
+  };
+
+  // Render tiêu đề popover thông báo
+  const renderNotificationTitle = () => (
+    <div className="notif-popover-title">
+      <BellOutlined style={{ color: '#4361ee' }} />
+      <span>Thông báo đơn hàng</span>
+      {pendingOrders.length > 0 && (
+        <span className="notif-title-count">{pendingOrders.length}</span>
+      )}
+    </div>
+  );
+
+  // Render nội dung popover thông báo
+  const renderNotificationContent = () => {
+    if (notifLoading && pendingOrders.length === 0) {
+      return (
+        <div className="notif-loading">
+          <i className="fa fa-spinner fa-spin"></i> Đang tải...
+        </div>
+      );
+    }
+
+    if (pendingOrders.length === 0) {
+      return (
+        <div className="notif-empty">
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description={
+              <div>
+                <div style={{ fontWeight: 600, color: '#2b2d42' }}>
+                  Không có đơn hàng chờ xử lý
+                </div>
+                <div style={{ fontSize: 12, color: '#6c757d', marginTop: 4 }}>
+                  Tất cả đơn hàng đã được xử lý
+                </div>
+              </div>
+            }
+          />
+        </div>
+      );
+    }
+
+    return (
+      <div className="notif-popover-content">
+        <div className="notif-summary">
+          <ShoppingOutlined style={{ color: '#4361ee' }} />
+          <span>
+            Bạn có <strong>{pendingOrders.length}</strong> đơn hàng chờ xử lý
+          </span>
+        </div>
+        <List
+          className="notif-order-list"
+          dataSource={pendingOrders.slice(0, 5)}
+          renderItem={(order) => {
+            const orderCode = (order._id || '').slice(-6).toUpperCase();
+            const customerName = order?.khachHang?.hoTen || 'Khách hàng';
+            const productName = order?.chiTiet?.xe?.dongXe?.tenDongXe || 'Sản phẩm';
+            return (
+              <List.Item
+                className="notif-order-item"
+                onClick={() => {
+                  setNotifPopoverOpen(false);
+                  navigate('/admin/orders');
+                }}
+              >
+                <div className="notif-order-item-inner">
+                  <div className="notif-order-icon">
+                    <ShoppingOutlined />
+                  </div>
+                  <div className="notif-order-info">
+                    <div className="notif-order-code">
+                      Đơn hàng <strong>#{orderCode}</strong>
+                    </div>
+                    <div className="notif-order-meta">
+                      <span><UserOutlined /> {customerName}</span>
+                      <span>• {productName}</span>
+                    </div>
+                    <div className="notif-order-bottom">
+                      <span className="notif-order-price">
+                        <DollarOutlined /> {formatPrice(order.tongTien)}
+                      </span>
+                      <span className="notif-order-time">
+                        {formatTimeAgo(order.ngayDat)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </List.Item>
+            );
+          }}
+        />
+        {pendingOrders.length > 5 && (
+          <div className="notif-more">
+            <Button
+              type="link"
+              onClick={() => {
+                setNotifPopoverOpen(false);
+                navigate('/admin/orders');
+              }}
+            >
+              Xem thêm {pendingOrders.length - 5} đơn hàng khác →
+            </Button>
+          </div>
+        )}
+        <div className="notif-footer">
+          <Button
+            type="primary"
+            block
+            onClick={() => {
+              setNotifPopoverOpen(false);
+              navigate('/admin/orders');
+            }}
+          >
+            Xem tất cả đơn hàng
+          </Button>
+        </div>
+      </div>
+    );
   };
 
   // Nếu chưa đăng nhập → hiển thị form login
@@ -218,10 +415,27 @@ function AdminLayout() {
               <i className="fa-solid fa-search"></i>
               <input type="text" placeholder="Tìm kiếm..." />
             </div>
-            <div className="topbar-notification">
-              <i className="fa-solid fa-bell"></i>
-              <span className="notif-badge">3</span>
-            </div>
+            <Popover
+              content={renderNotificationContent()}
+              title={renderNotificationTitle()}
+              trigger="click"
+              open={notifPopoverOpen}
+              onOpenChange={setNotifPopoverOpen}
+              placement="bottomRight"
+              overlayClassName="admin-notif-popover"
+              arrow={false}
+            >
+              <div className="topbar-notification">
+                <Badge
+                  count={pendingOrders.length}
+                  overflowCount={99}
+                  offset={[-2, 2]}
+                  title={`Bạn có ${pendingOrders.length} đơn hàng chờ xử lý`}
+                >
+                  <BellOutlined className="notif-bell-icon" />
+                </Badge>
+              </div>
+            </Popover>
             <div className="topbar-user" onClick={handleLogout} title="Đăng xuất">
               <i className="fa-solid fa-circle-user"></i>
               <span className="user-name">{userRole}</span>

@@ -573,44 +573,8 @@ $radius-sm: 8px;
       }
     }
 
-    .topbar-notification {
-      position: relative;
-      cursor: pointer;
-      width: 40px;
-      height: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      border-radius: 10px;
-      background: $admin-bg;
-      transition: all 0.2s;
-
-      i {
-        font-size: 18px;
-        color: $admin-text-light;
-      }
-
-      .notif-badge {
-        position: absolute;
-        top: -2px;
-        right: -2px;
-        background: $admin-danger;
-        color: #fff;
-        font-size: 10px;
-        font-weight: 700;
-        width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 2px solid #fff;
-      }
-
-      &:hover {
-        background: darken($admin-bg, 3%);
-      }
-    }
+    // .topbar-notification đã được định nghĩa lại ở phía dưới (ADMIN NOTIFICATION POPOVER)
+    // sử dụng Badge + Popover của antd thay cho badge cứng "3"
 
     .topbar-user {
       display: flex;
@@ -1965,5 +1929,247 @@ $radius-sm: 8px;
       padding: 0 2px;
       letter-spacing: 2px;
     }
+  }
+}
+
+// ===== ADMIN NOTIFICATION POPOVER (Antd Badge + Popover) =====
+.topbar-notification {
+  position: relative;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 10px;
+  background: #f0f2f5;
+  transition: all 0.2s;
+
+  .notif-bell-icon {
+    font-size: 18px;
+    color: #6c757d;
+    transition: color 0.2s;
+  }
+
+  &:hover {
+    background: darken(#f0f2f5, 3%);
+
+    .notif-bell-icon {
+      color: #4361ee;
+    }
+  }
+}
+
+.admin-notif-popover {
+  .ant-popover-inner {
+    padding: 0;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
+    overflow: hidden;
+    width: 380px;
+    max-width: 90vw;
+  }
+
+  .ant-popover-inner-content {
+    padding: 0;
+  }
+
+  .ant-popover-title {
+    padding: 14px 18px;
+    border-bottom: 1px solid #e9ecef;
+    margin: 0;
+    background: #fafbfc;
+  }
+}
+
+.notif-popover-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 15px;
+  font-weight: 700;
+  color: #2b2d42;
+
+  .notif-title-count {
+    margin-left: auto;
+    background: #e63946;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    padding: 2px 8px;
+    border-radius: 10px;
+    min-width: 22px;
+    text-align: center;
+  }
+}
+
+.notif-popover-content {
+  display: flex;
+  flex-direction: column;
+  max-height: 480px;
+}
+
+.notif-loading {
+  padding: 40px 20px;
+  text-align: center;
+  color: #6c757d;
+  font-size: 13px;
+
+  i {
+    margin-right: 8px;
+    color: #4361ee;
+  }
+}
+
+.notif-empty {
+  padding: 30px 20px;
+}
+
+.notif-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, rgba(67, 97, 238, 0.08), rgba(76, 201, 240, 0.08));
+  border-bottom: 1px solid #e9ecef;
+  font-size: 13px;
+  color: #2b2d42;
+
+  strong {
+    color: #4361ee;
+    font-weight: 800;
+    font-size: 15px;
+    margin: 0 2px;
+  }
+}
+
+.notif-order-list {
+  flex: 1;
+  overflow-y: auto;
+  max-height: 320px;
+
+  .ant-list-items {
+    padding: 0;
+  }
+
+  .ant-list-item {
+    padding: 0 !important;
+    border-bottom: 1px solid #f0f2f5 !important;
+
+    &:last-child {
+      border-bottom: none !important;
+    }
+  }
+}
+
+.notif-order-item {
+  cursor: pointer;
+  padding: 12px 18px;
+  transition: background 0.2s;
+
+  &:hover {
+    background: #f8f9ff;
+  }
+}
+
+.notif-order-item-inner {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.notif-order-icon {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, rgba(67, 97, 238, 0.1), rgba(76, 201, 240, 0.1));
+  color: #4361ee;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.notif-order-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.notif-order-code {
+  font-size: 13px;
+  font-weight: 600;
+  color: #2b2d42;
+  margin-bottom: 4px;
+
+  strong {
+    color: #4361ee;
+  }
+}
+
+.notif-order-meta {
+  font-size: 12px;
+  color: #6c757d;
+  margin-bottom: 6px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+  }
+}
+
+.notif-order-bottom {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 4px;
+}
+
+.notif-order-price {
+  font-size: 12px;
+  font-weight: 700;
+  color: #e63946;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.notif-order-time {
+  font-size: 11px;
+  color: #adb5bd;
+  white-space: nowrap;
+}
+
+.notif-more {
+  text-align: center;
+  padding: 8px 18px;
+  border-top: 1px solid #f0f2f5;
+  background: #fafbfc;
+
+  .ant-btn {
+    font-size: 12px;
+    font-weight: 600;
+  }
+}
+
+.notif-footer {
+  padding: 12px 18px;
+  border-top: 1px solid #e9ecef;
+  background: #fafbfc;
+
+  .ant-btn {
+    font-weight: 600;
+    height: 36px;
+    border-radius: 8px;
   }
 }

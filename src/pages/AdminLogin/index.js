@@ -7,15 +7,6 @@ import { setCookie, getCookie, deleteCookie } from '../../helpers/cookie';
 import { post } from '../../untils/requests';
 import '../../css/admin.scss';
 
-// Demo admin credentials (dùng làm fallback khi API lỗi)
-const DEMO_ADMIN = {
-  tenDangNhap: 'admin',
-  matKhau: '123456',
-  hoTen: 'Admin LongMoto',
-  email: 'admin@longmoto.vn',
-  id: 'DEMO_ADMIN_001',
-};
-
 // Helper: extract token từ response của API admin
 // Hỗ trợ nhiều cấu trúc response khác nhau:
 // - { user: { token, ... } }
@@ -142,48 +133,6 @@ function isSignInSuccess(response) {
     return response;
   };
 
-  // Đăng nhập bằng tài khoản demo (gọi API thật)
-  const handleDemoLogin = async () => {
-    setLoading(true);
-    try {
-      // Gọi API admin thật với tài khoản demo
-      const response = await callAdminSignIn(DEMO_ADMIN.tenDangNhap, DEMO_ADMIN.matKhau);
-
-      if (response && isSignInSuccess(response)) {
-        const user = extractUser(response);
-        const token = extractToken(response);
-
-        if (!token) {
-          message.error('Không nhận được token từ server!');
-          return;
-        }
-
-        // Kiểm tra role có được phép truy cập admin không
-        const roleName = user?.vaiTro?.tenVaiTro;
-        const allowedRoles = ['Admin', 'Quản Lý', 'Nhân Viên'];
-        if (roleName && !allowedRoles.includes(roleName)) {
-          message.error('Tài khoản này không có quyền truy cập trang Admin!');
-          return;
-        }
-
-        persistLogin(user, token);
-        dispatch(checkAdminLogin(true, token));
-        message.success(`Chào mừng Admin ${user?.hoTen || ''}`);
-        navigate('/admin/dashboard');
-        return;
-      }
-
-      // Nếu API trả về lỗi
-      const errorMsg = response?.message || 'Đăng nhập thất bại!';
-      message.error(errorMsg);
-    } catch (err) {
-      console.error('Demo login error:', err);
-      message.error('Đăng nhập thất bại! Vui lòng kiểm tra lại tài khoản demo (admin / 123456).');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -255,13 +204,6 @@ function isSignInSuccess(response) {
           <div className="admin-login-form-wrap">
             <h2>Đăng nhập Admin</h2>
             <p className="admin-login-desc">Vui lòng đăng nhập để quản lý hệ thống</p>
-            {/* Demo Account Info */}
-            <div className="admin-demo-info">
-              <i className="fa-solid fa-flask"></i>
-              <div className="demo-text">
-                <strong>Tài khoản Demo:</strong> admin / 123456
-              </div>
-            </div>
 
             <form onSubmit={handleSubmit} className="admin-login-form">
               <div className="admin-field">
@@ -298,20 +240,6 @@ function isSignInSuccess(response) {
                 )}
               </button>
             </form>
-
-            <div className="admin-demo-divider">
-              <span>HOẶC</span>
-            </div>
-
-            <button
-              type="button"
-              className="admin-demo-btn"
-              onClick={handleDemoLogin}
-              disabled={loading}
-            >
-              <i className="fa-solid fa-rocket"></i>
-              Đăng nhập nhanh (admin / 123456)
-            </button>
           </div>
         </div>
       </div>
