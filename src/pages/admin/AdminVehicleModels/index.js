@@ -248,9 +248,7 @@ function AdminVehicleModels() {
           <button className="btn-admin-primary" onClick={() => handleOpenModal()}>
             <i className="fa-solid fa-plus"></i> Thêm hãng xe
           </button>
-          <button className="btn-admin-secondary">
-            <i className="fa-solid fa-download"></i> Xuất Excel
-          </button>
+          
         </div>
       </div>
 

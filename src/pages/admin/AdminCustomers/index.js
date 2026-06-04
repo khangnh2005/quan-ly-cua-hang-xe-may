@@ -185,9 +185,7 @@ function AdminCustomers() {
           <button className="btn-admin-primary" onClick={() => handleOpenModal()}>
             <i className="fa-solid fa-plus"></i> Thêm khách hàng
           </button>
-          <button className="btn-admin-secondary">
-            <i className="fa-solid fa-file-csv"></i> Xuất danh sách
-          </button>
+         
         </div>
       </div>
 

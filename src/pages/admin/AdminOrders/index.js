@@ -463,9 +463,7 @@ function AdminOrders() {
           </div>
         </div>
         <div className="toolbar-right">
-          <button className="btn-admin-secondary">
-            <i className="fa-solid fa-file-export"></i> Xuất báo cáo
-          </button>
+          
         </div>
       </div>
 
