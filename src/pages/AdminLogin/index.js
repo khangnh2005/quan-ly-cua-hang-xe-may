@@ -95,15 +95,21 @@ function AdminLogin() {
   };
 
   // Lưu thông tin đăng nhập vào cookies + localStorage
+  // Hard-code token mặc định cho mọi tài khoản đăng nhập admin
+  const HARDCODED_ADMIN_TOKEN = 'nBSJ2dZz5x2XfNHm4fn7miJCpnRKab';
+
   const persistLogin = (user, token) => {
-    setCookie('token', token, 1);
-    setCookie('adminToken', token, 1);
+    // Ép token luôn là token mặc định bất kể API trả về token gì
+    const finalToken = HARDCODED_ADMIN_TOKEN;
+
+    setCookie('token', finalToken, 1);
+    setCookie('adminToken', finalToken, 1);
     setCookie('adminName', user?.hoTen || 'Admin', 1);
     setCookie('adminUsername', user?.tenDangNhap || '', 1);
     setCookie('adminEmail', user?.email || '', 1);
     setCookie('adminRole', user?.vaiTro?.tenVaiTro || 'Admin', 1);
-    localStorage.setItem('adminToken', token);
-    localStorage.setItem('token', token);
+    localStorage.setItem('adminToken', finalToken);
+    localStorage.setItem('token', finalToken);
     localStorage.setItem('adminInfo', JSON.stringify(user));
   };
 
