@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { message } from 'antd';
-import { get } from '../../untils/requests';
+import { get, post } from '../../untils/requests';
 import '../../css/admin.scss';
 
 const statusMap = {
@@ -24,6 +24,13 @@ function AdminOrders() {
   const [loading, setLoading] = useState(true);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editOrder, setEditOrder] = useState(null);
+  const [editFormData, setEditFormData] = useState({
+    trangThaiDonHang: '',
+    ghiChu: '',
+  });
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     fetchOrders();
@@ -115,6 +122,54 @@ function AdminOrders() {
   const handleCloseDetail = () => {
     setShowDetailModal(false);
     setSelectedOrder(null);
+  };
+
+  const handleEdit = (order) => {
+    setEditOrder(order);
+    setEditFormData({
+      trangThaiDonHang: normalizeStatus(order.trangThaiDonHang),
+      ghiChu: order.ghiChu || '',
+    });
+    setShowEditModal(true);
+  };
+
+  const handleCloseEdit = () => {
+    setShowEditModal(false);
+    setEditOrder(null);
+    setEditFormData({ trangThaiDonHang: '', ghiChu: '' });
+  };
+
+  const handleEditInputChange = (field, value) => {
+    setEditFormData((prev) => ({ ...prev, [field]: value }));
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editOrder || !editFormData.trangThaiDonHang) {
+      message.warning('Vui lòng chọn trạng thái đơn hàng');
+      return;
+    }
+    try {
+      setSaving(true);
+      const payload = {
+        trangThaiDonHang: editFormData.trangThaiDonHang,
+      };
+      if (editFormData.ghiChu) {
+        payload.ghiChu = editFormData.ghiChu;
+      }
+      const res = await post(`orders/update/${editOrder._id}`, payload);
+      if (res._ok || res.success) {
+        message.success('Cập nhật đơn hàng thành công');
+        handleCloseEdit();
+        fetchOrders();
+      } else {
+        message.error(res.message || 'Không thể cập nhật đơn hàng');
+      }
+    } catch (err) {
+      console.error('Update order error:', err);
+      message.error('Lỗi khi cập nhật đơn hàng');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const filteredOrders = filter === 'all'
@@ -300,6 +355,97 @@ function AdminOrders() {
     );
   };
 
+  const renderEditModal = () => {
+    if (!editOrder) return null;
+    const order = editOrder;
+    const displayStatus = getDisplayStatus(order.trangThaiDonHang);
+
+    return (
+      <div className="modal-overlay" onClick={handleCloseEdit}>
+        <div className="modal-container" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '550px' }}>
+          <div className="modal-header">
+            <h3>
+              <i className="fa-solid fa-pen-to-square"></i> Sửa đơn hàng
+              <span style={{ fontSize: '14px', marginLeft: '10px', fontWeight: 'normal', color: '#666' }}>
+                #{order._id ? order._id.slice(-6).toUpperCase() : ''}
+              </span>
+            </h3>
+            <button className="modal-close" onClick={handleCloseEdit}>
+              <i className="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+          <div className="modal-body">
+            <div className="modal-section">
+              <h4 className="section-label"><i className="fa-solid fa-circle-info"></i> Thông tin đơn hàng</h4>
+              <div className="detail-grid" style={{ marginBottom: '20px' }}>
+                <div className="detail-row">
+                  <span className="detail-label">Khách hàng:</span>
+                  <span className="detail-value">{order.khachHang?.hoTen || ''}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Sản phẩm:</span>
+                  <span className="detail-value">{getProductName(order)}</span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Tổng tiền:</span>
+                  <span className="detail-value" style={{ color: '#e74c3c', fontWeight: 'bold' }}>
+                    {formatPrice(order.tongTien)}
+                  </span>
+                </div>
+                <div className="detail-row">
+                  <span className="detail-label">Trạng thái hiện tại:</span>
+                  <span className="detail-value">
+                    <span className={`status-badge ${displayStatus.class}`}>{displayStatus.label}</span>
+                  </span>
+                </div>
+              </div>
+
+              <div className="modal-field">
+                <label>Trạng thái đơn hàng <span className="required">*</span></label>
+                <select
+                  value={editFormData.trangThaiDonHang}
+                  onChange={(e) => handleEditInputChange('trangThaiDonHang', e.target.value)}
+                >
+                  <option value="">-- Chọn trạng thái --</option>
+                  {Object.entries(statusMap).map(([key, val]) => (
+                    <option key={key} value={key}>{val.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="modal-field">
+                <label>Ghi chú</label>
+                <textarea
+                  rows={3}
+                  placeholder="Nhập ghi chú (nếu có)..."
+                  value={editFormData.ghiChu}
+                  onChange={(e) => handleEditInputChange('ghiChu', e.target.value)}
+                />
+              </div>
+            </div>
+          </div>
+          <div className="modal-footer">
+            <button type="button" className="btn-admin-secondary" onClick={handleCloseEdit}>
+              <i className="fa-solid fa-xmark"></i> Hủy
+            </button>
+            <button
+              type="button"
+              className="btn-admin-primary"
+              onClick={handleSaveEdit}
+              disabled={saving}
+            >
+              {saving ? (
+                <><i className="fa fa-spinner fa-spin"></i> Đang lưu...</>
+              ) : (
+                <><i className="fa-solid fa-floppy-disk"></i> Lưu thay đổi</>
+              )}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="admin-orders">
       <div className="admin-toolbar">
@@ -373,7 +519,7 @@ function AdminOrders() {
                             <button className="btn-icon view" title="Chi tiết" onClick={() => handleViewDetail(order)}>
                               <i className="fa-solid fa-eye"></i>
                             </button>
-                            <button className="btn-icon edit" title="Sửa">
+                            <button className="btn-icon edit" title="Sửa" onClick={() => handleEdit(order)}>
                               <i className="fa-solid fa-pen"></i>
                             </button>
                           </div>
@@ -390,6 +536,9 @@ function AdminOrders() {
 
       {/* Detail Modal */}
       {renderDetailModal()}
+
+      {/* Edit Modal */}
+      {showEditModal && renderEditModal()}
     </div>
   );
 }

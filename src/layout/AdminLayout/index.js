@@ -7,9 +7,44 @@ import { deleteCookie, deleteAllCookies, getCookie } from '../../helpers/cookie'
 import AdminLogin from '../../pages/AdminLogin';
 import '../../css/admin.scss';
 
-const menuItems = [
+// Cấu hình menu theo vai trò
+const roleMenuConfig = {
+  Admin: {
+    allowedPaths: [
+      '/admin/dashboard',
+      '/admin/vehicles', '/admin/vehicle-models', '/admin/vehicle-categories',
+      '/admin/orders',
+      '/admin/customers',
+      '/admin/permissions',
+      '/admin/roles',
+      '/admin/settings',
+    ],
+    label: 'Admin'
+  },
+  'Quản Lý': {
+    allowedPaths: [
+      '/admin/dashboard',
+      '/admin/vehicles', '/admin/vehicle-models', '/admin/vehicle-categories',
+      '/admin/orders',
+      '/admin/customers',
+      '/admin/settings',
+    ],
+    label: 'Quản Lý'
+  },
+  'Nhân Viên': {
+    allowedPaths: [
+      '/admin/dashboard',
+      '/admin/orders',
+      '/admin/settings',
+    ],
+    label: 'Nhân Viên'
+  }
+};
+
+// Danh sách tất cả menu items (dùng để render sau khi lọc)
+const allMenuItems = [
   { path: '/admin/dashboard', icon: 'fa-chart-pie', label: 'Dashboard' },
-  { path: '/admin/vehicles', icon: 'fa-motorcycle', label: 'Sản phẩm' ,
+  { path: '/admin/vehicles', icon: 'fa-motorcycle', label: 'Sản phẩm',
     children: [
       { path: '/admin/vehicles', label: 'Danh sách xe' },
       { path: '/admin/vehicle-models', label: 'Hãng xe' },
@@ -19,8 +54,33 @@ const menuItems = [
   { path: '/admin/orders', icon: 'fa-clipboard-list', label: 'Đơn hàng' },
   { path: '/admin/customers', icon: 'fa-users', label: 'Khách hàng' },
   { path: '/admin/permissions', icon: 'fa-lock', label: 'Phân quyền' },
+  { path: '/admin/roles', icon: 'fa-user-tag', label: 'Vai trò' },
   { path: '/admin/settings', icon: 'fa-gear', label: 'Cài đặt' },
 ];
+
+// Lọc menu items dựa trên vai trò
+function filterMenuByRole(role) {
+  const config = roleMenuConfig[role];
+  if (!config) return [];
+
+  return allMenuItems.filter(item => {
+    // Nếu item có children, kiểm tra nếu bất kỳ child nào được phép
+    if (item.children) {
+      return item.children.some(child => config.allowedPaths.includes(child.path));
+    }
+    // Nếu không có children, kiểm tra trực tiếp
+    return config.allowedPaths.includes(item.path);
+  }).map(item => {
+    // Nếu item có children, lọc children
+    if (item.children) {
+      return {
+        ...item,
+        children: item.children.filter(child => config.allowedPaths.includes(child.path))
+      };
+    }
+    return item;
+  });
+}
 
 function AdminLayout() {
   const [collapsed, setCollapsed] = useState(false);
@@ -34,6 +94,14 @@ function AdminLayout() {
   const adminState = useSelector(state => state.adminReducer);
   const isAdmin = typeof adminState === 'boolean' ? adminState : adminState?.isAdmin;
   const adminToken = getCookie('adminToken');
+  const userRole = getCookie('adminRole') || 'Admin';
+
+  // Lọc menu items dựa trên vai trò
+  const menuItems = filterMenuByRole(userRole);
+
+  // Lấy danh sách các path được phép truy cập
+  const config = roleMenuConfig[userRole];
+  const allowedPaths = config ? config.allowedPaths : [];
 
   // Nếu chưa đăng nhập, redirect về /admin
   useEffect(() => {
@@ -41,6 +109,21 @@ function AdminLayout() {
       navigate('/admin', { replace: true });
     }
   }, [isAdmin, adminToken, location.pathname, navigate]);
+
+  // Kiểm tra quyền truy cập trang hiện tại
+  useEffect(() => {
+    if (isAdmin || adminToken) {
+      const currentPath = location.pathname;
+      // Nếu không phải trang dashboard và không nằm trong danh sách được phép thì redirect
+      if (currentPath.startsWith('/admin/') && currentPath !== '/admin') {
+        const isAllowed = allowedPaths.some(p => currentPath === p || currentPath.startsWith(p + '/'));
+        if (!isAllowed && menuItems.length > 0) {
+          message.warning('Bạn không có quyền truy cập trang này!');
+          navigate(menuItems[0].path, { replace: true });
+        }
+      }
+    }
+  }, [isAdmin, adminToken, location.pathname, allowedPaths, menuItems, navigate]);
 
   // Tự động mở sub-menu khi đang ở trang con
   useEffect(() => {
@@ -141,7 +224,7 @@ function AdminLayout() {
             </div>
             <div className="topbar-user" onClick={handleLogout} title="Đăng xuất">
               <i className="fa-solid fa-circle-user"></i>
-              <span className="user-name">Admin</span>
+              <span className="user-name">{userRole}</span>
               <i className="fa-solid fa-right-from-bracket logout-icon"></i>
             </div>
           </div>

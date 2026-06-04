@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { message, Modal } from 'antd';
-import { get, post, del } from '../../untils/requests';
+import { get, post } from '../../untils/requests';
 import '../../css/admin.scss';
 
 const emptyCustomer = {
@@ -147,28 +147,6 @@ function AdminCustomers() {
     });
   };
 
-  const handleDelete = (id) => {
-    Modal.confirm({
-      title: 'Bạn có chắc chắn muốn xóa khách hàng này?',
-      content: 'Hành động này sẽ xóa vĩnh viễn khách hàng khỏi hệ thống.',
-      okText: 'Xóa',
-      okType: 'danger',
-      cancelText: 'Hủy',
-      onOk: async () => {
-        try {
-          const res = await del(`customers/delete/${id}`);
-          if (res) {
-            message.success('Đã xóa khách hàng thành công!');
-            fetchCustomers();
-          }
-        } catch (err) {
-          message.error('Không thể xóa khách hàng!');
-        }
-      },
-      onCancel() { },
-    });
-  };
-
   const filteredCustomers = customers.filter(c => {
     if (!searchTerm) return true;
     const keyword = searchTerm.toLowerCase();
@@ -269,9 +247,6 @@ function AdminCustomers() {
                           </button>
                           <button className="btn-icon edit" title="Sửa" onClick={() => handleOpenModal(customer)}>
                             <i className="fa-solid fa-pen"></i>
-                          </button>
-                          <button className="btn-icon delete" title="Xóa" onClick={() => handleDelete(customer._id || customer.id)}>
-                            <i className="fa-solid fa-trash"></i>
                           </button>
                         </div>
                       </td>

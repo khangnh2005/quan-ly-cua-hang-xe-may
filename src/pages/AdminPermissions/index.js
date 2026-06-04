@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { message, Modal } from 'antd';
-import { get, post, del } from '../../untils/requests';
+import { get, post } from '../../untils/requests';
 import '../../css/admin.scss';
 
 const emptyEmployee = {
@@ -162,27 +162,6 @@ function AdminPermissions() {
     });
   };
 
-  const handleDelete = (id) => {
-    Modal.confirm({
-      title: 'Xóa nhân viên?',
-      content: 'Hành động này sẽ xóa vĩnh viễn nhân viên khỏi hệ thống.',
-      okText: 'Xóa',
-      okType: 'danger',
-      cancelText: 'Hủy',
-      onOk: async () => {
-        try {
-          const res = await del(`admin/employees/delete/${id}`);
-          if (res) {
-            message.success('Đã xóa thành công!');
-            fetchEmployees();
-          }
-        } catch (err) {
-          message.error('Không thể xóa!');
-        }
-      },
-    });
-  };
-
   const getTenVaiTro = (emp) => {
     if (!emp?.vaiTro) return 'Nhân viên';
     if (typeof emp.vaiTro === 'object') return emp.vaiTro.tenVaiTro || 'Nhân viên';
@@ -197,15 +176,42 @@ function AdminPermissions() {
     return items.length ? items : <span className="text-muted">Chưa có quyền</span>;
   };
 
-  const filteredEmployees = employees.filter(emp => {
-    if (!searchTerm) return true;
-    const k = searchTerm.toLowerCase();
-    const ten = (typeof emp.vaiTro === 'object' ? emp.vaiTro?.tenVaiTro || '' : emp.vaiTro || '').toLowerCase();
-    return (emp.hoTen || '').toLowerCase().includes(k)
-      || (emp.email || '').toLowerCase().includes(k)
-      || (emp.soDienThoai || '').toLowerCase().includes(k)
-      || ten.includes(k);
-  });
+  // Role priority for sorting (thấp → cao: Admin → Quản Lý → Nhân viên)
+  const rolePriority = {
+    'Admin': 1,
+    'Quản lý': 2,
+    'Quản Lý': 2,
+    'Nhân viên': 3,
+  };
+
+  const getRoleName = (emp) => {
+    if (!emp?.vaiTro) return 'Nhân viên';
+    if (typeof emp.vaiTro === 'object') return emp.vaiTro.tenVaiTro || 'Nhân viên';
+    return emp.vaiTro;
+  };
+
+  const getRolePriority = (emp) => {
+    const roleName = getRoleName(emp);
+    return rolePriority[roleName] || 99;
+  };
+
+  const filteredEmployees = employees
+    .filter(emp => {
+      if (!searchTerm) return true;
+      const k = searchTerm.toLowerCase();
+      const ten = (typeof emp.vaiTro === 'object' ? emp.vaiTro?.tenVaiTro || '' : emp.vaiTro || '').toLowerCase();
+      return (emp.hoTen || '').toLowerCase().includes(k)
+        || (emp.email || '').toLowerCase().includes(k)
+        || (emp.soDienThoai || '').toLowerCase().includes(k)
+        || ten.includes(k);
+    })
+    .sort((a, b) => {
+      // Sort by role priority first (thấp → cao), then by name if same role
+      const pA = getRolePriority(a);
+      const pB = getRolePriority(b);
+      if (pA !== pB) return pA - pB;
+      return (a.hoTen || '').localeCompare(b.hoTen || '');
+    });
 
   return (
     <div className="admin-permissions">
@@ -237,14 +243,13 @@ function AdminPermissions() {
                   <th>Số điện thoại</th>
                   <th>Vai trò</th>
                   <th>Trạng thái</th>
-                  <th>Quyền hạn</th>
                   <th style={{ width: '120px' }}>Thao tác</th>
                 </tr>
               </thead>
               <tbody>
                 {filteredEmployees.length === 0 ? (
                   <tr>
-                    <td colSpan={8} style={{ textAlign: 'center', padding: '30px', color: '#999' }}>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '30px', color: '#999' }}>
                       {searchTerm ? 'Không tìm thấy' : 'Chưa có nhân viên nào'}
                     </td>
                   </tr>
@@ -266,7 +271,6 @@ function AdminPermissions() {
                           {emp.trangThai === true || emp.trangThai === 'true' ? 'Hoạt động' : 'Khóa'}
                         </span>
                       </td>
-                      <td><div className="permission-list">{getPermissionIcons(emp)}</div></td>
                       <td>
                         <div className="action-btns">
                           <button className={`btn-icon ${emp.trangThai ? 'warning' : 'success'}`}
@@ -276,9 +280,6 @@ function AdminPermissions() {
                           </button>
                           <button className="btn-icon edit" title="Sửa" onClick={() => handleOpenModal(emp)}>
                             <i className="fa-solid fa-pen"></i>
-                          </button>
-                          <button className="btn-icon delete" title="Xóa" onClick={() => handleDelete(emp._id || emp.id)}>
-                            <i className="fa-solid fa-trash"></i>
                           </button>
                         </div>
                       </td>
@@ -348,23 +349,6 @@ function AdminPermissions() {
                         <option value={true}>Hoạt động</option>
                         <option value={false}>Khóa</option>
                       </select>
-                    </div>
-                  </div>
-                  <div className="modal-section">
-                    <h4 className="section-label">Phân quyền (3 chức năng)</h4>
-                    <div className="permission-checkboxes">
-                      <label className="checkbox-label">
-                        <input type="checkbox" name="coQuyenThem" checked={form.coQuyenThem} onChange={handleInput} />
-                        <span className="checkbox-custom"><i className="fa-solid fa-plus-circle"></i> Quyền thêm (Thêm)</span>
-                      </label>
-                      <label className="checkbox-label">
-                        <input type="checkbox" name="coQuyenSua" checked={form.coQuyenSua} onChange={handleInput} />
-                        <span className="checkbox-custom"><i className="fa-solid fa-pen-to-square"></i> Quyền sửa (Sửa)</span>
-                      </label>
-                      <label className="checkbox-label">
-                        <input type="checkbox" name="coQuyenXoa" checked={form.coQuyenXoa} onChange={handleInput} />
-                        <span className="checkbox-custom"><i className="fa-solid fa-trash-can"></i> Quyền xóa (Xóa)</span>
-                      </label>
                     </div>
                   </div>
                 </div>

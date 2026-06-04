@@ -152,10 +152,11 @@ function isSignInSuccess(response) {
           return;
         }
 
-        // Kiểm tra role admin
+        // Kiểm tra role có được phép truy cập admin không
         const roleName = user?.vaiTro?.tenVaiTro;
-        if (roleName && roleName !== 'Admin') {
-          message.error('Tài khoản này không có quyền Admin!');
+        const allowedRoles = ['Admin', 'Quản Lý', 'Nhân Viên'];
+        if (roleName && !allowedRoles.includes(roleName)) {
+          message.error('Tài khoản này không có quyền truy cập trang Admin!');
           return;
         }
 
@@ -193,9 +194,10 @@ function isSignInSuccess(response) {
           return;
         }
 
-        // Kiểm tra role admin (vaiTro.tenVaiTro === 'Admin')
+        // Kiểm tra role có được phép truy cập admin không
         const roleName = user?.vaiTro?.tenVaiTro;
-        if (roleName && roleName !== 'Admin') {
+        const allowedRoles = ['Admin', 'Quản Lý', 'Nhân Viên'];
+        if (roleName && !allowedRoles.includes(roleName)) {
           message.error(`Tài khoản "${formData.tenDangNhap}" không có quyền truy cập trang Admin!`);
           return;
         }
