@@ -294,7 +294,7 @@ function Home() {
             ))}
           </ul>
         </section>
-
+          <br></br>
         <div className="search-filter-body">
           {/* SIDEBAR LỌC */}
           <aside className="sidebar">

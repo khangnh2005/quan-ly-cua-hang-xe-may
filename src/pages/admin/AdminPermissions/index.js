@@ -272,16 +272,26 @@ function AdminPermissions() {
                         </span>
                       </td>
                       <td>
-                        <div className="action-btns">
-                          <button className={`btn-icon ${emp.trangThai ? 'warning' : 'success'}`}
-                            title={emp.trangThai ? 'Khóa' : 'Mở khóa'}
-                            onClick={() => handleToggleStatus(emp)}>
-                            <i className={`fa-solid ${emp.trangThai ? 'fa-lock' : 'fa-unlock'}`}></i>
-                          </button>
-                          <button className="btn-icon edit" title="Sửa" onClick={() => handleOpenModal(emp)}>
-                            <i className="fa-solid fa-pen"></i>
-                          </button>
-                        </div>
+                        {getRoleName(emp) === 'Admin' ? (
+                          <span
+                            className="action-btns"
+                            style={{ color: '#999', fontSize: 12, fontStyle: 'italic' }}
+                            title="Tài khoản Admin không thể chỉnh sửa/khóa"
+                          >
+                            <i className="fa-solid fa-shield-halved"></i> Admin
+                          </span>
+                        ) : (
+                          <div className="action-btns">
+                            <button className={`btn-icon ${emp.trangThai ? 'warning' : 'success'}`}
+                              title={emp.trangThai ? 'Khóa' : 'Mở khóa'}
+                              onClick={() => handleToggleStatus(emp)}>
+                              <i className={`fa-solid ${emp.trangThai ? 'fa-lock' : 'fa-unlock'}`}></i>
+                            </button>
+                            <button className="btn-icon edit" title="Sửa" onClick={() => handleOpenModal(emp)}>
+                              <i className="fa-solid fa-pen"></i>
+                            </button>
+                          </div>
+                        )}
                       </td>
                     </tr>
                   ))

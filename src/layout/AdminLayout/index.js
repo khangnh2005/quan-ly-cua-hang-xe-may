@@ -45,6 +45,7 @@ const roleMenuConfig = {
       '/admin/permissions',
       '/admin/roles',
       '/admin/settings',
+      '/admin/profile',
     ],
     label: 'Admin'
   },
@@ -55,6 +56,7 @@ const roleMenuConfig = {
       '/admin/orders',
       '/admin/customers',
       '/admin/settings',
+      '/admin/profile',
     ],
     label: 'Quản Lý'
   },
@@ -63,6 +65,7 @@ const roleMenuConfig = {
       '/admin/dashboard',
       '/admin/orders',
       '/admin/settings',
+      '/admin/profile',
     ],
     label: 'Nhân Viên'
   }
@@ -83,6 +86,7 @@ const allMenuItems = [
   { path: '/admin/permissions', icon: 'fa-lock', label: 'Phân quyền' },
   { path: '/admin/roles', icon: 'fa-user-tag', label: 'Vai trò' },
   { path: '/admin/settings', icon: 'fa-gear', label: 'Cài đặt' },
+  { path: '/admin/profile', icon: 'fa-user-circle', label: 'Thông tin cá nhân' },
 ];
 
 // Lọc menu items dựa trên vai trò

@@ -18,6 +18,7 @@ import AdminCustomers from "../pages/admin/AdminCustomers";
 import AdminSettings from "../pages/admin/AdminSettings";
 import AdminPermissions from "../pages/admin/AdminPermissions";
 import AdminRoles from "../pages/admin/AdminRoles";
+import AdminProfile from "../pages/admin/AdminProfile";
 import About from "../pages/client/About";
 import News from "../pages/client/News";
 import NewsDetail from "../pages/client/News/NewsDetail";
@@ -72,6 +73,7 @@ export const routes = [
             { path: "settings", element: <AdminSettings /> },
             { path: "permissions", element: <AdminPermissions /> },
             { path: "roles", element: <AdminRoles /> },
+            { path: "profile", element: <AdminProfile /> },
         ]
     }
 ]

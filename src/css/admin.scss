@@ -2162,6 +2162,189 @@ $radius-sm: 8px;
   }
 }
 
+// ===== ADMIN PROFILE PAGE =====
+.admin-profile-page {
+  .admin-profile-grid {
+    display: grid;
+    grid-template-columns: 320px 1fr;
+    gap: 24px;
+    align-items: flex-start;
+
+    @media (max-width: 992px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .admin-profile-sidebar {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    position: sticky;
+    top: 24px;
+
+    @media (max-width: 992px) {
+      position: static;
+    }
+  }
+
+  .admin-profile-summary {
+    .card-body {
+      text-align: center;
+      padding: 28px 22px 22px;
+    }
+  }
+
+  .admin-profile-avatar-wrap {
+    position: relative;
+    display: inline-block;
+    margin-bottom: 16px;
+  }
+
+  .admin-profile-avatar {
+    width: 130px;
+    height: 130px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 4px solid #fff;
+    background: #f0f2ff;
+    box-shadow: 0 6px 20px rgba(67, 97, 238, 0.18);
+    margin: 0 auto;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+  }
+
+  .admin-profile-avatar-edit {
+    position: absolute;
+    bottom: 4px;
+    right: 4px;
+    width: 38px;
+    height: 38px;
+    border-radius: 50%;
+    border: 3px solid #fff;
+    background: $admin-primary;
+    color: #fff;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    box-shadow: 0 4px 12px rgba(67, 97, 238, 0.35);
+    transition: all 0.2s;
+
+    &:hover {
+      transform: scale(1.08);
+      background: $admin-primary-dark;
+    }
+  }
+
+  .admin-profile-name {
+    font-size: 20px;
+    font-weight: 800;
+    color: $admin-text;
+    margin: 0 0 6px;
+  }
+
+  .admin-profile-username {
+    font-size: 13px;
+    color: $admin-text-light;
+    margin: 0 0 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    i {
+      color: $admin-primary;
+    }
+  }
+
+  .admin-profile-actions {
+    margin-top: 18px;
+  }
+
+  .admin-profile-info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px 24px;
+
+    @media (max-width: 640px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .admin-profile-info-item {
+    background: #f8f9fc;
+    border: 1px solid $admin-border;
+    border-radius: 10px;
+    padding: 12px 16px;
+    transition: all 0.2s;
+
+    &:hover {
+      border-color: $admin-primary;
+      background: #f0f2ff;
+    }
+
+    label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: $admin-text-light;
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+
+      i {
+        color: $admin-primary;
+        font-size: 13px;
+      }
+    }
+
+    p {
+      font-size: 15px;
+      font-weight: 600;
+      color: $admin-text;
+      margin: 0;
+      word-break: break-word;
+    }
+
+    &.admin-profile-info-full {
+      grid-column: 1 / -1;
+    }
+  }
+
+  // Avatar trong modal
+  .admin-profile-modal-avatar {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .admin-profile-modal-avatar-img {
+    width: 140px;
+    height: 140px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 3px solid $admin-border;
+    background: #f0f2ff;
+    box-shadow: $shadow-sm;
+
+    img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
+  }
+}
+
 .notif-footer {
   padding: 12px 18px;
   border-top: 1px solid #e9ecef;
