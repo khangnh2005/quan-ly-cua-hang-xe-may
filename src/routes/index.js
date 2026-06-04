@@ -1,26 +1,26 @@
 import { Navigate } from "react-router-dom";
 import LayoutDefault from "../layout/layoutDefault";
-import Home from "../pages/Home";
-import ProductDetail from "../pages/ProductDetail";
-import Login from "../pages/Login";
-import Register from "../pages/Register";
-import Profile from "../pages/Profile";
+import Home from "../pages/client/Home";
+import ProductDetail from "../pages/client/ProductDetail";
+import Login from "../pages/client/Login";
+import Register from "../pages/client/Register";
+import Profile from "../pages/client/Profile";
 import PrivateRoute from "../PrivateRoute";
 
 // Admin imports
 import AdminLayout from "../layout/AdminLayout";
-import AdminDashboard from "../pages/AdminDashboard";
-import AdminProducts from "../pages/AdminProducts";
-import AdminVehicleModels from "../pages/AdminVehicleModels";
-import AdminVehicleCategories from "../pages/AdminVehicleCategories";
-import AdminOrders from "../pages/AdminOrders";
-import AdminCustomers from "../pages/AdminCustomers";
-import AdminSettings from "../pages/AdminSettings";
-import AdminPermissions from "../pages/AdminPermissions";
-import AdminRoles from "../pages/AdminRoles";
-import About from "../pages/About";
-import News from "../pages/News";
-import NewsDetail from "../pages/News/NewsDetail";
+import AdminDashboard from "../pages/admin/AdminDashboard";
+import AdminProducts from "../pages/admin/AdminProducts";
+import AdminVehicleModels from "../pages/admin/AdminVehicleModels";
+import AdminVehicleCategories from "../pages/admin/AdminVehicleCategories";
+import AdminOrders from "../pages/admin/AdminOrders";
+import AdminCustomers from "../pages/admin/AdminCustomers";
+import AdminSettings from "../pages/admin/AdminSettings";
+import AdminPermissions from "../pages/admin/AdminPermissions";
+import AdminRoles from "../pages/admin/AdminRoles";
+import About from "../pages/client/About";
+import News from "../pages/client/News";
+import NewsDetail from "../pages/client/News/NewsDetail";
 
 export const routes = [
     // === CLIENT ROUTES ===

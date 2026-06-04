@@ -6,7 +6,7 @@ import { BellOutlined, ShoppingOutlined, UserOutlined, DollarOutlined } from '@a
 import { checkAdminLogin } from '../../actions/checkAdminLogin';
 import { deleteCookie, deleteAllCookies, getCookie } from '../../helpers/cookie';
 import { get } from '../../untils/requests';
-import AdminLogin from '../../pages/AdminLogin';
+import AdminLogin from '../../pages/admin/AdminLogin';
 import '../../css/admin.scss';
 
 // Map để chuẩn hóa trạng thái đơn hàng (giống AdminOrders)
