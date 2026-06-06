@@ -203,7 +203,7 @@ function ProductDetail() {
     );
   }
 
-  const { dongXe, mauSac, soKhung, soMay, trangThaiXe, namSanXuat } = vehicle;
+  const { tenXe, dongXe, mauSac, soKhung, soMay, trangThaiXe, namSanXuat } = vehicle;
 
   return (
     <div className="product-detail-page">
@@ -234,9 +234,9 @@ function ProductDetail() {
         </div>
 
         <div className="detail-info-section">
-          <h1 className="detail-title">{dongXe?.tenDongXe}</h1>
+          <h1 className="detail-title">{tenXe || dongXe?.tenDongXe}</h1>
           <p className="detail-brand">
-            <span className="label">Hãng sản xuất:</span> {dongXe?.loaiXe?.tenLoaiXe || 'Honda'}
+            <span className="label">Dòng Xe:</span> {dongXe?.tenDongXe || 'Đang cập nhật'}
           </p>
           <p className="detail-year">
             <span className="label">Năm sản xuất:</span> {namSanXuat || dongXe?.namSanXuat || 'Đang cập nhật'}

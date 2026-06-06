@@ -238,7 +238,7 @@ function Home() {
                 src={getVehicleImage(vehicle)}
                 alt={vehicle.dongXe?.tenDongXe}
               />
-              <h3>{vehicle.dongXe?.tenDongXe}</h3>
+              <h3>{vehicle.tenXe}</h3>
               <p className="price">Giá: {formatPrice(vehicle.dongXe?.giaNiemYet)}</p>
               <p style={{ fontSize: '13px', color: '#666', marginTop: '5px' }}>
                 {vehicle.dongXe?.loaiXe?.tenLoaiXe} - {vehicle.mauSac}
@@ -373,7 +373,7 @@ function Home() {
                       src={getVehicleImage(vehicle)}
                       alt={vehicle.dongXe?.tenDongXe}
                     />
-                    <h4>{vehicle.dongXe?.tenDongXe}</h4>
+                    <h4>{vehicle.tenXe}</h4>
                     <p className="price">Giá: {formatPrice(vehicle.dongXe?.giaNiemYet)}</p>
                     <p style={{ fontSize: '12px', color: '#999', marginTop: '3px' }}>
                       {vehicle.dongXe?.loaiXe?.tenLoaiXe} - {vehicle.mauSac || 'Chưa có màu'}
